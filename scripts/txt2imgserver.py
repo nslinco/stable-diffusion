@@ -102,7 +102,7 @@ def DoSD(
         optskip_save=True,
         optddim_steps=50,
         optplms=True,
-        optlaion400m=True,
+        optlaion400m=False,
         optfixed_code=True,
         optddim_eta=0.0,
         optn_iter=2,

@@ -203,13 +203,18 @@ class SDModel:
 
                             x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
 
+                            for x_sample in x_checked_image_torch:
+                                x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                                img = Image.fromarray(x_sample.astype(np.uint8))
+                                img = put_watermark(img, self.wm_encoder)
+                                outimgs.append(img)
+
                             if not self.optskip_save:
                                 for x_sample in x_checked_image_torch:
                                     x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
                                     img = Image.fromarray(x_sample.astype(np.uint8))
                                     img = put_watermark(img, self.wm_encoder)
                                     img.save(os.path.join(sample_path, f"{base_count:05}.png"))
-                                    outimgs.append(img)
                                     base_count += 1
 
                             if not self.optskip_grid:

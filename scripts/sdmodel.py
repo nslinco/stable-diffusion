@@ -128,8 +128,8 @@ class SDModel:
         config = OmegaConf.load(f"{self.optconfig}")
         self.model = load_model_from_config(config, f"{self.optckpt}")
 
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        self.model = self.model.to(device)
+        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        self.model = self.model.to(self.device)
 
         if self.optplms:
             self.sampler = PLMSSampler(self.model)
@@ -166,7 +166,7 @@ class SDModel:
 
         start_code = None
         if self.optfixed_code:
-            start_code = torch.randn([num_predictions, self.optC, self.optH // self.optf, self.optW // self.optf], device=device)
+            start_code = torch.randn([num_predictions, self.optC, self.optH // self.optf, self.optW // self.optf], device=self.device)
 
         outimgs = []
 

@@ -15,7 +15,7 @@ app = Flask(__name__)
 CORS(app)
 print("--> Starting Stable Diffusion Server. This might take up to two minutes.")
 
-from text2img_server import DoSD
+from txt2imgserver import DoSD
 
 parser = argparse.ArgumentParser(description = "A Stable Diffusion app to turn your textual prompts into visionary delights")
 parser.add_argument("--port", type=int, default=8000, help = "backend port")

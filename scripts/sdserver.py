@@ -15,7 +15,8 @@ app = Flask(__name__)
 CORS(app)
 print("--> Starting Stable Diffusion Server. This might take up to two minutes.")
 
-from txt2imgserver import DoSD
+from sdmodel import SDModel
+sd_model = None
 
 parser = argparse.ArgumentParser(description = "A Stable Diffusion app to turn your textual prompts into visionary delights")
 parser.add_argument("--port", type=int, default=8000, help = "backend port")
@@ -31,7 +32,7 @@ def generate_images_api():
     json_data = request.get_json(force=True)
     text_prompt = json_data["text"]
     num_images = json_data["num_images"]
-    generated_imgs = DoSD(text_prompt, num_images)
+    generated_imgs = sd_model.generate_images(text_prompt, num_images)
 
     returned_generated_images = []
     # if args.save_to_disk: 
@@ -47,7 +48,7 @@ def generate_images_api():
         img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
         returned_generated_images.append(img_str)
 
-    print(f"Created {num_images} images from text prompt [{text_prompt}]")
+    # print(f"Created {num_images} images from text prompt [{text_prompt}]")
     
     response = {'generatedImgs': returned_generated_images,
     'generatedImgsFormat': args.img_format}
@@ -61,7 +62,8 @@ def health_check():
 
 
 with app.app_context():
-    DoSD("warm-up", 1)
+    sd_model = SDModel()
+    sd_model.generate_images("warm-up", 1)
     print("--> Stable Diffusion Server is up and running!")
 
 

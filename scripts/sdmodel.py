@@ -101,7 +101,7 @@ class SDModel:
         self.optskip_save=True
         self.optddim_steps=50
         self.optplms=True
-        self.optlaion400m=True
+        self.optlaion400m=False
         self.optfixed_code=True
         self.optddim_eta=0.0
         self.optn_iter=2

@@ -64,7 +64,7 @@ def health_check():
 
 with app.app_context():
     sd_model = SDModel()
-    sd_model.generate_images("warm-up", 1)
+    sd_model.generate_images("warm-up", 1, 50)
     print("--> Stable Diffusion Server is up and running!")
 
 

@@ -104,7 +104,7 @@ class SDModel:
         self.optlaion400m=False
         self.optfixed_code=True
         self.optddim_eta=0.0
-        self.optn_iter=2
+        self.optn_iter=1
         self.optH=512
         self.optW=512
         self.optC=4

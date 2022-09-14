@@ -145,8 +145,9 @@ class SDModel:
         self.wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
         print("Finished initializing the Stable Diffusion model")
 
-    def generate_images(self, prompt: str, num_predictions: int):
+    def generate_images(self, prompt: str, num_predictions: int, num_steps: int):
         print(f"Generating {num_predictions} images from prompt: {prompt}")
+        self.optddim_steps = num_steps
         batch_size = num_predictions
         n_rows = self.optn_rows if self.optn_rows > 0 else batch_size
         if not self.optfrom_file:

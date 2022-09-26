@@ -37,7 +37,7 @@ class InpaintModel:
 
         config = OmegaConf.load("models/ldm/inpainting_big/config.yaml")
         self.model = instantiate_from_config(config.model)
-        self.model.load_state_dict(torch.load("models/ldm/inpainting_big/last.ckpt")["state_dict"],
+        self.model.load_state_dict(torch.load("/var/meadowrun/machine_cache/last.ckpt")["state_dict"],
                             strict=False)
 
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")

@@ -40,8 +40,8 @@ class InpaintModel:
         self.model.load_state_dict(torch.load("models/ldm/inpainting_big/last.ckpt")["state_dict"],
                             strict=False)
 
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        self.model = self.model.to(device)
+        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        self.model = self.model.to(self.device)
         self.sampler = DDIMSampler(self.model)
 
 
@@ -50,7 +50,7 @@ class InpaintModel:
         with torch.no_grad():
             with self.model.ema_scope():
                 outpath = os.path.join(self.optoutdir, os.path.split(image)[1])
-                batch = make_batch(image, mask, device=device)
+                batch = make_batch(image, mask, device=self.device)
 
                 # encode masked image and concat downsampled mask
                 c = self.model.cond_stage_model.encode(batch["masked_image"])

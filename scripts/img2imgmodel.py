@@ -64,7 +64,7 @@ class SDModel:
         self.optskip_grid=True # "do not save a grid, only individual samples. Helpful when evaluating lots of samples",
         self.optskip_save=True # "do not save indiviual samples. For speed measurements.",
         self.optddim_steps=50 # "number of ddim sampling steps",
-        self.optplms=True # "use plms sampling",
+        self.optplms=False # "use plms sampling",
         self.optfixed_code=True # "if enabled, uses the same starting code across all samples ",
         self.optddim_eta=0.0 # "ddim eta (eta=0.0 corresponds to deterministic sampling",
         self.optn_iter=1 # "sample this often",

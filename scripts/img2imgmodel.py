@@ -113,10 +113,10 @@ class SDModel:
         init_image = repeat(init_image, '1 ... -> b ...', b=batch_size)
         init_latent = self.model.get_first_stage_encoding(self.model.encode_first_stage(init_image))  # move to latent space
 
-        self.sampler.make_schedule(ddim_num_steps=self.optddim_steps, ddim_eta=self.optddim_eta, verbose=False)
+        self.sampler.make_schedule(ddim_num_steps=num_steps, ddim_eta=self.optddim_eta, verbose=False)
 
         assert 0. <= self.optstrength <= 1., 'can only work with strength in [0.0, 1.0]'
-        t_enc = int(self.optstrength * self.optddim_steps)
+        t_enc = int(self.optstrength * num_steps)
         print(f"target t_enc is {t_enc} steps")
 
         outimgs = []

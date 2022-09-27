@@ -49,7 +49,7 @@ class InpaintModel:
         os.makedirs(self.optoutdir, exist_ok=True)
         with torch.no_grad():
             with self.model.ema_scope():
-                outpath = os.path.join(self.optoutdir, os.path.split(image)[1])
+                # outpath = os.path.join(self.optoutdir, os.path.split(image)[1])
                 batch = make_batch(image, mask, device=self.device)
 
                 # encode masked image and concat downsampled mask

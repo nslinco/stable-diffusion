@@ -32,7 +32,7 @@ def generate_images_api():
     image = json_data["image"]
     prompt = json_data["prompt"]
     num_steps = json_data["num_steps"]
-    generated_img = sd_model.generate_image(BytesIO(base64.b64decode(image)), prompt, num_steps)
+    generated_imgs = sd_model.generate_image(BytesIO(base64.b64decode(image)), prompt, num_steps)
 
     returned_generated_images = []
     # if args.save_to_disk: 

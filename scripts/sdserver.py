@@ -186,11 +186,11 @@ with app.app_context():
 
     # Run Warm-Up Tests
     t1 = sd_model.generate_images("warm-up", 1, 50)
-    print('t1: ', t1)
+    et1 = encodeImgs(t1)
     print("--> Stable Diffusion Server is up and running!")
     # inpaint_model.generate_image(t1[0], t1[0], 50)
     # print("--> Inpainting Server is up and running!")
-    img2img_model.generate_images(t1[0].split(',')[1], "warm-up", 1, 50)
+    img2img_model.generate_images(et1[0].split(',')[1], "warm-up", 1, 50)
     print("--> Img2Img Server is up and running!")
 
 

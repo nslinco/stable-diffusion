@@ -45,6 +45,7 @@ def encodeImgs(generated_imgs):
         buffered = BytesIO()
         img.save(buffered, format=args.img_format)
         img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        img_str = f'data:image/${args.img_format};base64,${img_str}'
         returned_generated_images.append(img_str)
     return (returned_generated_images)
 
@@ -188,7 +189,7 @@ with app.app_context():
     print("--> Stable Diffusion Server is up and running!")
     # inpaint_model.generate_image(t1[0], t1[0], 50)
     # print("--> Inpainting Server is up and running!")
-    img2img_model.generate_images(t1[0], "warm-up", 1, 50)
+    img2img_model.generate_images(t1[0].split(',')[1], "warm-up", 1, 50)
     print("--> Img2Img Server is up and running!")
 
 

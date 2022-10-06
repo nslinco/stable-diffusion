@@ -186,6 +186,7 @@ with app.app_context():
 
     # Run Warm-Up Tests
     t1 = sd_model.generate_images("warm-up", 1, 50)
+    print('t1: ', t1)
     print("--> Stable Diffusion Server is up and running!")
     # inpaint_model.generate_image(t1[0], t1[0], 50)
     # print("--> Inpainting Server is up and running!")

@@ -190,7 +190,7 @@ with app.app_context():
     print("--> Stable Diffusion Server is up and running!")
     # inpaint_model.generate_image(t1[0], t1[0], 50)
     # print("--> Inpainting Server is up and running!")
-    img2img_model.generate_images(et1[0].split(',')[1], "warm-up", 1, 50)
+    img2img_model.generate_images(BytesIO(base64.b64decode(et1[0].split(',')[1]))), "warm-up", 1, 50)
     print("--> Img2Img Server is up and running!")
 
 

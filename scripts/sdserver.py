@@ -45,7 +45,7 @@ def encodeImgs(generated_imgs):
         buffered = BytesIO()
         img.save(buffered, format=args.img_format)
         img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-        img_str = f'data:image/${args.img_format};base64,${img_str}'
+        img_str = f'data:image/{args.img_format};base64,{img_str}'
         returned_generated_images.append(img_str)
     return (returned_generated_images)
 

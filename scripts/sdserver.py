@@ -126,7 +126,7 @@ def doImg2Img():
 @cross_origin()
 def sd_api():
     # Return if busy
-    if (curJobs['sd']) return jsonify(jobId, 'waiting')
+    if (curJobs['sd']): return jsonify(jobId, 'waiting')
 
     # Parse request
     job = request.get_json(force=True)
@@ -142,7 +142,7 @@ def sd_api():
 @cross_origin()
 def inpaint_api():
     # Return if busy
-    if (curJobs['inpaint']) return jsonify(jobId, 'waiting')
+    if (curJobs['inpaint']): return jsonify(jobId, 'waiting')
 
     # Parse request
     job = request.get_json(force=True)
@@ -158,7 +158,7 @@ def inpaint_api():
 @cross_origin()
 def img2img_api():
     # Return if busy
-    if (curJobs['img2img']) return jsonify(jobId, 'waiting')
+    if (curJobs['img2img']): return jsonify(jobId, 'waiting')
 
     # Parse request
     job = request.get_json(force=True)

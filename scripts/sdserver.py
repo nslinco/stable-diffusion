@@ -18,7 +18,7 @@ CORS(app)
 print("--> Starting Stable Diffusion Server. This might take up to two minutes.")
 
 from sdmodel import SDModel
-from inpaintmodel import InpaintModel
+# from inpaintmodel import InpaintModel
 from img2imgmodel import SDModel as Img2ImgModel
 
 curJobs = {
@@ -28,7 +28,7 @@ curJobs = {
 }
 
 sd_model = None
-inpaint_model = None
+# inpaint_model = None
 img2img_model = None
 
 parser = argparse.ArgumentParser(description = "A Stable Diffusion app to turn your textual prompts into visionary delights")
@@ -180,14 +180,14 @@ def health_check():
 with app.app_context():
     # Initialize Models
     sd_model = SDModel()
-    inpaint_model = InpaintModel()
+    # inpaint_model = InpaintModel()
     img2img_model = Img2ImgModel()
 
     # Run Warm-Up Tests
     t1 = sd_model.generate_images("warm-up", 1, 50)
     print("--> Stable Diffusion Server is up and running!")
-    inpaint_model.generate_image(t1[0], t1[0], 50)
-    print("--> Inpainting Server is up and running!")
+    # inpaint_model.generate_image(t1[0], t1[0], 50)
+    # print("--> Inpainting Server is up and running!")
     img2img_model.generate_images(t1[0], "warm-up", 1, 50)
     print("--> Img2Img Server is up and running!")
 

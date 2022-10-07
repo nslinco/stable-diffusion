@@ -59,6 +59,7 @@ def postResponse(jobId, response):
 def doSD():
     # Parse request
     job = curJobs['sd']
+    print('doSD job: ', job)
     jobId = job._id
     jobData = job.data
     text_prompt = jobData["prompt"]
@@ -131,6 +132,7 @@ def sd_api():
 
     # Parse request
     job = request.get_json(force=True)
+    print('sd_api job: ', job)
 
     # Run Job
     curJobs['sd'] = job

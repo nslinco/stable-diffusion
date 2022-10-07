@@ -127,7 +127,7 @@ def doImg2Img():
 @cross_origin()
 def sd_api():
     # Return if busy
-    if (curJobs['sd']): return jsonify(jobId, 'waiting')
+    if (curJobs['sd']): return jsonify(curJobs['sd']._id, 'waiting')
 
     # Parse request
     job = request.get_json(force=True)
@@ -137,13 +137,13 @@ def sd_api():
     Thread(target = doSD()).start()
     
     # Report Job has started
-    return jsonify(jobId, 'working')
+    return jsonify(job._id, 'working')
 
 @app.route("/inpaint", methods=["POST"])
 @cross_origin()
 def inpaint_api():
     # Return if busy
-    if (curJobs['inpaint']): return jsonify(jobId, 'waiting')
+    if (curJobs['inpaint']): return jsonify(curJobs['inpaint']._id, 'waiting')
 
     # Parse request
     job = request.get_json(force=True)
@@ -153,13 +153,13 @@ def inpaint_api():
     Thread(target = doInpaint()).start()
     
     # Report Job has started
-    return jsonify(jobId, 'working')
+    return jsonify(job._id, 'working')
 
 @app.route("/img2img", methods=["POST"])
 @cross_origin()
 def img2img_api():
     # Return if busy
-    if (curJobs['img2img']): return jsonify(jobId, 'waiting')
+    if (curJobs['img2img']): return jsonify(curJobs['img2img']._id, 'waiting')
 
     # Parse request
     job = request.get_json(force=True)
@@ -169,7 +169,7 @@ def img2img_api():
     Thread(target = doImg2Img()).start()
     
     # Report Job has started
-    return jsonify(jobId, 'working')
+    return jsonify(job._id, 'working')
 
 
 @app.route("/", methods=["GET"])

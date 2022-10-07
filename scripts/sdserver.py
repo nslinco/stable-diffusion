@@ -60,8 +60,8 @@ def doSD():
     # Parse request
     job = curJobs['sd']
     print('doSD job: ', job)
-    jobId = job._id
-    jobData = job.data
+    jobId = job['_id']
+    jobData = job['data']
     text_prompt = jobData["prompt"]
     num_images = jobData["num_images"]
     num_steps = jobData["num_steps"]
@@ -82,8 +82,8 @@ def doSD():
 def doInpaint():
     # Parse request
     job = curJobs['inpaint']
-    jobId = job._id
-    jobData = job.data
+    jobId = job['_id']
+    jobData = job['data']
     image = jobData["image"]
     mask = jobData["mask"]
     num_steps = jobData["num_steps"]
@@ -104,8 +104,8 @@ def doInpaint():
 def doImg2Img():
     # Parse request
     job = curJobs['img2img']
-    jobId = job._id
-    jobData = job.data
+    jobId = job['_id']
+    jobData = job['data']
     image = jobData["image"]
     prompt = jobData["prompt"]
     num_images = jobData["num_images"]
@@ -128,7 +128,7 @@ def doImg2Img():
 @cross_origin()
 def sd_api():
     # Return if busy
-    if (curJobs['sd']): return jsonify(curJobs['sd']._id, 'waiting')
+    if (curJobs['sd']): return jsonify(curJobs['sd']['_id'], 'waiting')
 
     # Parse request
     job = request.get_json(force=True)
@@ -139,13 +139,13 @@ def sd_api():
     Thread(target = doSD()).start()
     
     # Report Job has started
-    return jsonify(job._id, 'working')
+    return jsonify(job['_id'], 'working')
 
 @app.route("/inpaint", methods=["POST"])
 @cross_origin()
 def inpaint_api():
     # Return if busy
-    if (curJobs['inpaint']): return jsonify(curJobs['inpaint']._id, 'waiting')
+    if (curJobs['inpaint']): return jsonify(curJobs['inpaint']['_id'], 'waiting')
 
     # Parse request
     job = request.get_json(force=True)
@@ -155,13 +155,13 @@ def inpaint_api():
     Thread(target = doInpaint()).start()
     
     # Report Job has started
-    return jsonify(job._id, 'working')
+    return jsonify(job['_id'], 'working')
 
 @app.route("/img2img", methods=["POST"])
 @cross_origin()
 def img2img_api():
     # Return if busy
-    if (curJobs['img2img']): return jsonify(curJobs['img2img']._id, 'waiting')
+    if (curJobs['img2img']): return jsonify(curJobs['img2img']['_id'], 'waiting')
 
     # Parse request
     job = request.get_json(force=True)
@@ -171,7 +171,7 @@ def img2img_api():
     Thread(target = doImg2Img()).start()
     
     # Report Job has started
-    return jsonify(job._id, 'working')
+    return jsonify(job['_id'], 'working')
 
 
 @app.route("/", methods=["GET"])

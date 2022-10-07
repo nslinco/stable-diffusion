@@ -19,7 +19,7 @@ print("--> Starting Stable Diffusion Server. This might take up to two minutes."
 
 from sdmodel import SDModel
 # from inpaintmodel import InpaintModel
-from img2imgmodel import SDModel as Img2ImgModel
+# from img2imgmodel import SDModel as Img2ImgModel
 
 curJobs = {
     'sd': None,
@@ -29,7 +29,7 @@ curJobs = {
 
 sd_model = None
 # inpaint_model = None
-img2img_model = None
+# img2img_model = None
 
 parser = argparse.ArgumentParser(description = "A Stable Diffusion app to turn your textual prompts into visionary delights")
 parser.add_argument("--port", type=int, default=8000, help = "backend port")
@@ -79,50 +79,50 @@ def doSD():
         'generatedImgsFormat': args.img_format
     }))
 
-def doInpaint():
-    # Parse request
-    job = curJobs['inpaint']
-    jobId = job['_id']
-    jobData = job['data']
-    image = jobData["image"]
-    mask = jobData["mask"]
-    num_steps = jobData["num_steps"]
+# def doInpaint():
+#     # Parse request
+#     job = curJobs['inpaint']
+#     jobId = job['_id']
+#     jobData = job['data']
+#     image = jobData["image"]
+#     mask = jobData["mask"]
+#     num_steps = jobData["num_steps"]
 
-    # Generate Images
-    generated_img = inpaint_model.generate_image(BytesIO(base64.b64decode(image)), BytesIO(base64.b64decode(mask)), num_steps)
-    curJobs['inpaint'] = None
+#     # Generate Images
+#     generated_img = inpaint_model.generate_image(BytesIO(base64.b64decode(image)), BytesIO(base64.b64decode(mask)), num_steps)
+#     curJobs['inpaint'] = None
 
-    # Encode Images
-    returned_generated_images = encodeImgs([generated_img])
+#     # Encode Images
+#     returned_generated_images = encodeImgs([generated_img])
     
-    # Return Images
-    return postResponse(jobId, jsonify({
-        'generatedImgs': returned_generated_images,
-        'generatedImgsFormat': args.img_format
-    }))
+#     # Return Images
+#     return postResponse(jobId, jsonify({
+#         'generatedImgs': returned_generated_images,
+#         'generatedImgsFormat': args.img_format
+#     }))
 
-def doImg2Img():
-    # Parse request
-    job = curJobs['img2img']
-    jobId = job['_id']
-    jobData = job['data']
-    image = jobData["image"]
-    prompt = jobData["prompt"]
-    num_images = jobData["num_images"]
-    num_steps = jobData["num_steps"]
+# def doImg2Img():
+#     # Parse request
+#     job = curJobs['img2img']
+#     jobId = job['_id']
+#     jobData = job['data']
+#     image = jobData["image"]
+#     prompt = jobData["prompt"]
+#     num_images = jobData["num_images"]
+#     num_steps = jobData["num_steps"]
 
-    # Generate Images
-    generated_imgs = img2img_model.generate_image(BytesIO(base64.b64decode(image)), prompt, num_images, num_steps)
-    curJobs['img2img'] = None
+#     # Generate Images
+#     generated_imgs = img2img_model.generate_image(BytesIO(base64.b64decode(image)), prompt, num_images, num_steps)
+#     curJobs['img2img'] = None
 
-    # Encode Images
-    returned_generated_images = encodeImgs(generated_imgs)
+#     # Encode Images
+#     returned_generated_images = encodeImgs(generated_imgs)
     
-    # Return Images
-    return postResponse(jobId, jsonify({
-        'generatedImgs': returned_generated_images,
-        'generatedImgsFormat': args.img_format
-    }))
+#     # Return Images
+#     return postResponse(jobId, jsonify({
+#         'generatedImgs': returned_generated_images,
+#         'generatedImgsFormat': args.img_format
+#     }))
 
 @app.route("/sd", methods=["POST"])
 @cross_origin()
@@ -141,37 +141,37 @@ def sd_api():
     # Report Job has started
     return jsonify(job['_id'], 'working')
 
-@app.route("/inpaint", methods=["POST"])
-@cross_origin()
-def inpaint_api():
-    # Return if busy
-    if (curJobs['inpaint']): return jsonify(curJobs['inpaint']['_id'], 'waiting')
+# @app.route("/inpaint", methods=["POST"])
+# @cross_origin()
+# def inpaint_api():
+#     # Return if busy
+#     if (curJobs['inpaint']): return jsonify(curJobs['inpaint']['_id'], 'waiting')
 
-    # Parse request
-    job = request.get_json(force=True)
+#     # Parse request
+#     job = request.get_json(force=True)
 
-    # Run Job
-    curJobs['inpaint'] = job
-    Thread(target = doInpaint()).start()
+#     # Run Job
+#     curJobs['inpaint'] = job
+#     Thread(target = doInpaint()).start()
     
-    # Report Job has started
-    return jsonify(job['_id'], 'working')
+#     # Report Job has started
+#     return jsonify(job['_id'], 'working')
 
-@app.route("/img2img", methods=["POST"])
-@cross_origin()
-def img2img_api():
-    # Return if busy
-    if (curJobs['img2img']): return jsonify(curJobs['img2img']['_id'], 'waiting')
+# @app.route("/img2img", methods=["POST"])
+# @cross_origin()
+# def img2img_api():
+    # # Return if busy
+    # if (curJobs['img2img']): return jsonify(curJobs['img2img']['_id'], 'waiting')
 
-    # Parse request
-    job = request.get_json(force=True)
+    # # Parse request
+    # job = request.get_json(force=True)
 
-    # Run Job
-    curJobs['img2img'] = job
-    Thread(target = doImg2Img()).start()
+    # # Run Job
+    # curJobs['img2img'] = job
+    # Thread(target = doImg2Img()).start()
     
-    # Report Job has started
-    return jsonify(job['_id'], 'working')
+    # # Report Job has started
+    # return jsonify(job['_id'], 'working')
 
 
 @app.route("/", methods=["GET"])
@@ -184,16 +184,16 @@ with app.app_context():
     # Initialize Models
     sd_model = SDModel()
     # inpaint_model = InpaintModel()
-    img2img_model = Img2ImgModel()
+    # img2img_model = Img2ImgModel()
 
     # Run Warm-Up Tests
     t1 = sd_model.generate_images("warm-up", 1, 50)
-    et1 = encodeImgs(t1)
+    # et1 = encodeImgs(t1)
     print("--> Stable Diffusion Server is up and running!")
     # inpaint_model.generate_image(t1[0], t1[0], 50)
     # print("--> Inpainting Server is up and running!")
-    img2img_model.generate_images(BytesIO(base64.b64decode(et1[0].split(',')[1])), "warm-up", 1, 50)
-    print("--> Img2Img Server is up and running!")
+    # img2img_model.generate_images(BytesIO(base64.b64decode(et1[0].split(',')[1])), "warm-up", 1, 50)
+    # print("--> Img2Img Server is up and running!")
 
 
 if __name__ == "__main__":

@@ -53,7 +53,7 @@ def postResponse(jobId, response):
     url = 'https://feedback-backend.herokuapp.com/create/callback'
     myobj = {}
     myobj[jobId] = response
-    x = requests.post(url, json = jsonify(myobj))
+    x = requests.post(url, data=myobj)
     return (x)
 
 def doSD():

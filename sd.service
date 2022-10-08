@@ -1,0 +1,13 @@
+# /home/ubuntu/stable-diffusion/sd.service => /etc/systemd/system/sd.service
+[Unit]
+Description=gunicorn daemon for serve flask application...
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/stable-diffusion
+ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/gunicorn --timeout 0 --pythonpath "/home/ubuntu/stable-diffusion/scripts" --bind localhost:8000 sdserver:app
+
+[Install]
+WantedBy=multi-user.target

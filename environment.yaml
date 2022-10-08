@@ -12,6 +12,7 @@ dependencies:
   - pip:
     - flask
     - flask-cors
+    - gunicorn
     - albumentations==0.4.3
     - diffusers
     - opencv-python==4.1.2.30

@@ -1,6 +1,6 @@
 # /home/ubuntu/stable-diffusion/sd.service => /etc/systemd/system/sd.service
 [Unit]
-Description=gunicorn daemon for serve flask application...
+Description=Stable Diffusion gunicorn daemon
 After=network.target
 
 [Service]

@@ -1,0 +1,14 @@
+# /home/ubuntu/stable-diffusion/inpaint.service => /etc/systemd/system/inpaint.service
+[Unit]
+Description=Inpainting gunicorn daemon
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/stable-diffusion
+ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/gunicorn --timeout 0 --pythonpath "/home/ubuntu/stable-diffusion/scripts" --bind localhost:8000 inpaintserver:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

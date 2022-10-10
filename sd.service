@@ -8,6 +8,7 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/stable-diffusion
 ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/gunicorn --timeout 0 --pythonpath "/home/ubuntu/stable-diffusion/scripts" --bind localhost:8000 sdserver:app
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

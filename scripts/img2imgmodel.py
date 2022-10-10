@@ -93,8 +93,8 @@ class SDModel:
         else:
             self.sampler = DDIMSampler(self.model)
 
-        os.makedirs(self.optoutdir, exist_ok=True)
-        self.outpath = self.optoutdir
+        # os.makedirs(self.optoutdir, exist_ok=True)
+        # self.outpath = self.optoutdir
 
 
     def generate_images(self, image, prompt: str, num_images: int, num_steps: int):
@@ -104,10 +104,10 @@ class SDModel:
         assert prompt is not None
         data = [batch_size * [prompt]]
 
-        sample_path = os.path.join(self.outpath, "samples")
-        os.makedirs(sample_path, exist_ok=True)
-        base_count = len(os.listdir(sample_path))
-        grid_count = len(os.listdir(self.outpath)) - 1
+        # sample_path = os.path.join(self.outpath, "samples")
+        # os.makedirs(sample_path, exist_ok=True)
+        # base_count = len(os.listdir(sample_path))
+        # grid_count = len(os.listdir(self.outpath)) - 1
 
         init_image = load_img(image).to(self.device)
         init_image = repeat(init_image, '1 ... -> b ...', b=batch_size)

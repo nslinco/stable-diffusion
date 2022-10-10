@@ -46,7 +46,7 @@ class InpaintModel:
 
 
     def generate_image(self, image, mask, num_steps: int):
-        os.makedirs(self.optoutdir, exist_ok=True)
+        # os.makedirs(self.optoutdir, exist_ok=True)
         with torch.no_grad():
             with self.model.ema_scope():
                 # outpath = os.path.join(self.optoutdir, os.path.split(image)[1])

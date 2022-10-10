@@ -23,7 +23,7 @@ parser.add_argument("--port", type=int, default=8000, help = "backend port")
 parser.add_argument("--save_to_disk", type = parse_arg_boolean, default = False, help = "Should save generated images to disk")
 parser.add_argument("--img_format", type = str.lower, default = "JPEG", help = "Generated images format", choices=['jpeg', 'png'])
 parser.add_argument("--output_dir", type = str, default = DEFAULT_IMG_OUTPUT_DIR, help = "Customer directory for generated images")
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 @app.route("/sd", methods=["POST"])
 @cross_origin()
@@ -68,4 +68,4 @@ with app.app_context():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=args.port, debug=False)
+    app.run()

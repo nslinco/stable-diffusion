@@ -136,8 +136,8 @@ class SDModel:
         else:
             self.sampler = DDIMSampler(self.model)
 
-        os.makedirs(self.optoutdir, exist_ok=True)
-        self.outpath = self.optoutdir
+        # os.makedirs(self.optoutdir, exist_ok=True)
+        # self.outpath = self.optoutdir
 
         print("Creating invisible watermark encoder (see https://github.com/ShieldMnt/invisible-watermark)...")
         wm = "StableDiffusionV1"
@@ -160,10 +160,10 @@ class SDModel:
                 data = f.read().splitlines()
                 data = list(chunk(data, batch_size))
 
-        sample_path = os.path.join(self.outpath, "samples")
-        os.makedirs(sample_path, exist_ok=True)
-        base_count = len(os.listdir(sample_path))
-        grid_count = len(os.listdir(self.outpath)) - 1
+        # sample_path = os.path.join(self.outpath, "samples")
+        # os.makedirs(sample_path, exist_ok=True)
+        # base_count = len(os.listdir(sample_path))
+        # grid_count = len(os.listdir(self.outpath)) - 1
 
         start_code = None
         if self.optfixed_code:

@@ -1,7 +1,7 @@
 # /home/ubuntu/stable-diffusion/sd.service => /etc/systemd/system/sd.service
 [Unit]
 Description=gunicorn daemon for serve flask application...
-After=cloud-final.service
+After=network.target # cloud-final.service
 
 [Service]
 User=ubuntu

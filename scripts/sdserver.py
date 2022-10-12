@@ -16,7 +16,7 @@ from consts import ModelSize
 # Celery Queue
 from celery import Celery
 
-appTasks = Celery('sdserver', broker='amqp://localhost')
+appTasks = Celery('sdserver', broker='redis://localhost')
 
 @appTasks.task
 def doSD(job):

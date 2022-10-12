@@ -7,7 +7,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/stable-diffusion/scripts
-ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/celery -A tasks worker --loglevel=INFO
+ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/celery -A sdserver.celery worker --loglevel=INFO
 Restart=always
 
 [Install]

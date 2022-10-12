@@ -13,12 +13,21 @@ from consts import DEFAULT_IMG_OUTPUT_DIR
 from utils import parse_arg_boolean, parse_arg_dalle_version
 from consts import ModelSize
 
+from sdmodel import SDModel
+
 # Celery Queue
-from celery import Celery
+from tasks import make_celery
 
-appTasks = Celery('sdserver', broker='redis://localhost')
+# Flask App
+app = Flask(__name__)
+app.config.update(CELERY_CONFIG={
+    'broker_url': 'redis://localhost:6379',
+})
+CORS(app)
+celery = make_celery(app)
+print("--> Starting Stable Diffusion Server. This might take up to two minutes.")
 
-@appTasks.task
+@celery.task()
 def doSD(job):
     # Parse request
     print('doSD job: ', job)
@@ -40,12 +49,6 @@ def doSD(job):
         'generatedImgsFormat': args.img_format
     }))
 
-# Flask App
-app = Flask(__name__)
-CORS(app)
-print("--> Starting Stable Diffusion Server. This might take up to two minutes.")
-
-from sdmodel import SDModel
 
 # curJobs = {
 #     'sd': None

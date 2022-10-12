@@ -7,7 +7,8 @@ After=redis.service
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/stable-diffusion
-ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/celery -A scripts.sdserver.celery worker --loglevel=INFO
+Environment="PYTHONPATH=/home/ubuntu/stable-diffusion/scripts"
+ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/celery -A sdserver.celery worker --loglevel=INFO
 Restart=always
 
 [Install]

@@ -1,0 +1,14 @@
+# /home/ubuntu/stable-diffusion/celery.service => /etc/systemd/system/celery.service
+[Unit]
+Description=Celery daemon
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/stable-diffusion/scripts
+ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/celery -A sdserver worker --loglevel=INFO
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

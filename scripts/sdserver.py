@@ -13,15 +13,43 @@ from consts import DEFAULT_IMG_OUTPUT_DIR
 from utils import parse_arg_boolean, parse_arg_dalle_version
 from consts import ModelSize
 
+# Celery Queue
+from celery import Celery
+
+appTasks = Celery('sdserver', broker='amqp://localhost')
+
+@appTasks.task
+def doSD(job):
+    # Parse request
+    print('doSD job: ', job)
+    jobId = job['_id']
+    jobData = job['data']
+    text_prompt = jobData["prompt"]
+    num_images = jobData["num_images"]
+    num_steps = jobData["num_steps"]
+
+    # Generate Images
+    generated_imgs = sd_model.generate_images(text_prompt, num_images, num_steps)
+
+    # Encode Images
+    returned_generated_images = encodeImgs(generated_imgs)
+    
+    # Return Images
+    return postResponse(jobId, jsonify({
+        'generatedImgs': returned_generated_images,
+        'generatedImgsFormat': args.img_format
+    }))
+
+# Flask App
 app = Flask(__name__)
 CORS(app)
 print("--> Starting Stable Diffusion Server. This might take up to two minutes.")
 
 from sdmodel import SDModel
 
-curJobs = {
-    'sd': None
-}
+# curJobs = {
+#     'sd': None
+# }
 
 sd_model = None
 
@@ -50,42 +78,19 @@ def postResponse(jobId, response):
     x = requests.post(url, data=myobj)
     return (x)
 
-def doSD():
-    # Parse request
-    job = curJobs['sd']
-    print('doSD job: ', job)
-    jobId = job['_id']
-    jobData = job['data']
-    text_prompt = jobData["prompt"]
-    num_images = jobData["num_images"]
-    num_steps = jobData["num_steps"]
-
-    # Generate Images
-    generated_imgs = sd_model.generate_images(text_prompt, num_images, num_steps)
-    curJobs['sd'] = None
-
-    # Encode Images
-    returned_generated_images = encodeImgs(generated_imgs)
-    
-    # Return Images
-    return postResponse(jobId, jsonify({
-        'generatedImgs': returned_generated_images,
-        'generatedImgsFormat': args.img_format
-    }))
-
 @app.route("/sd", methods=["POST"])
 @cross_origin()
 def sd_api():
     # Return if busy
-    if (curJobs['sd']): return jsonify(curJobs['sd']['_id'], 'waiting')
+    # if (curJobs['sd']): return jsonify(curJobs['sd']['_id'], 'waiting')
 
     # Parse request
     job = request.get_json(force=True)
     print('sd_api job: ', job)
 
     # Run Job
-    curJobs['sd'] = job
-    Thread(target = doSD()).start()
+    # curJobs['sd'] = job
+    doSD.delay(job)
     
     # Report Job has started
     return jsonify(job['_id'], 'working')

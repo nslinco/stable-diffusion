@@ -5,8 +5,14 @@ from consts import DEFAULT_IMG_OUTPUT_DIR
 from utils import parse_arg_boolean, parse_arg_dalle_version
 from consts import ModelSize
 
+
+import base64
+from io import BytesIO
+import requests
+
+
 # Celery Queue
-from tasks import doSD
+from tasks import make_celery
 
 # Flask App
 app = Flask(__name__)
@@ -22,6 +28,52 @@ parser.add_argument("--save_to_disk", type = parse_arg_boolean, default = False,
 parser.add_argument("--img_format", type = str.lower, default = "JPEG", help = "Generated images format", choices=['jpeg', 'png'])
 parser.add_argument("--output_dir", type = str, default = DEFAULT_IMG_OUTPUT_DIR, help = "Customer directory for generated images")
 args, unknown = parser.parse_known_args()
+
+from sdmodel import SDModel
+
+# Make Celery
+celery = make_celery(app)
+
+# Initialize Model
+sd_model = None
+
+def encodeImgs(generated_imgs):
+    returned_generated_images = []    
+    for idx, img in enumerate(generated_imgs):
+        buffered = BytesIO()
+        img.save(buffered, format='jpeg')
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        img_str = f'data:image/jpeg;base64,{img_str}'
+        returned_generated_images.append(img_str)
+    return (returned_generated_images)
+
+def postResponse(jobId, response):
+    myobj = {}
+    myobj[jobId] = response
+    x = requests.post('https://feedback-backend.herokuapp.com/create/callback', data=myobj)
+    return (x)
+
+@celery.task()
+def doSD(job):
+    # Parse request
+    print('doSD job: ', job)
+    jobId = job['_id']
+    jobData = job['data']
+    text_prompt = jobData["prompt"]
+    num_images = jobData["num_images"]
+    num_steps = jobData["num_steps"]
+
+    # Generate Images
+    generated_imgs = sd_model.generate_images(text_prompt, num_images, num_steps)
+
+    # Encode Images
+    returned_generated_images = encodeImgs(generated_imgs)
+    
+    # Return Images
+    return postResponse(jobId, jsonify({
+        'generatedImgs': returned_generated_images,
+        'generatedImgsFormat': 'jpeg'
+    }))
 
 @app.route("/sd", methods=["POST"])
 @cross_origin()
@@ -48,6 +100,11 @@ def health_check():
 
 
 with app.app_context():
+    print("--> Starting Stable Diffusion Server. This might take up to two minutes.")
+    sd_model = SDModel()
+
+    # Run Warm-Up Tests
+    sd_model.generate_images("warm-up", 1, 50)
     print("--> Stable Diffusion Gunicorn Server is up and running!")
 
 

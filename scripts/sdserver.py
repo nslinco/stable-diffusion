@@ -1,5 +1,5 @@
 import argparse
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, json
 from flask_cors import CORS, cross_origin
 from consts import DEFAULT_IMG_OUTPUT_DIR
 from utils import parse_arg_boolean, parse_arg_dalle_version
@@ -49,9 +49,9 @@ def sd_api():
     print('sd_api job: ', job)
 
     # Save to Redis
-    jobs = r.get('jobs')
+    jobs = json.loads(r.get('jobs'))['jobs']
     jobs.append(job)
-    r.set('jobs', jobs)
+    r.set('jobs', json.dumps({'jobs': jobs}))
     
     # Report Job has started
     return jsonify(job['_id'], 'working')

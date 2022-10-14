@@ -2,7 +2,7 @@ import time
 import base64
 from io import BytesIO
 import requests
-from flask import jsonify
+from flask import jsonify, json
 
 from sdmodel import SDModel
 
@@ -45,14 +45,14 @@ def doSD(job):
     returned_generated_images = encodeImgs(generated_imgs)
     
     # Return Images
-    return postResponse(jobId, jsonify({
+    return postResponse(jobId, {
         'generatedImgs': returned_generated_images,
         'generatedImgsFormat': 'jpeg'
-    }))
+    })
 
 def main();
     while(true):
-        curJobs = r.get('jobs')
+        curJobs = json.loads(r.get('jobs'))['jobs']
         if(len(curJobs) > 0):
             curJob = curJobs[0]
             doneJob = doSD(curJob)
@@ -60,7 +60,8 @@ def main();
                 print('Job Error:', curJob['_id'])
             else
                 print('Job Complete:', curJob['_id'])
-                jobs = r.get('jobs')
+                jobs = json.loads(r.get('jobs'))['jobs']
                 jobs.remove(curJob)
+                jobs = json.dumps({ 'jobs': jobs})
                 r.set('jobs', jobs)
         time.sleep(1)

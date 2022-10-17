@@ -26,13 +26,13 @@ def encodeImgs(generated_imgs):
 def postResponse(jobId, response):
     myobj = {}
     myobj[jobId] = response
-    x = requests.post('https://feedback-backend.herokuapp.com/create/callback', data=myobj)
+    x = requests.post('https://feedback-backend.herokuapp.com/create/callback', json=myobj)
     return (x)
 
 def doSD(job, model):
     # Parse request
     print('doSD job: ', job)
-    jobId = job['_id']
+    jobId = str(job['_id'])
     jobData = job['data']
     text_prompt = jobData["prompt"]
     num_images = jobData["num_images"]
@@ -46,8 +46,8 @@ def doSD(job, model):
     
     # Return Images
     return postResponse(jobId, {
-        'generatedImgs': returned_generated_images,
-        'generatedImgsFormat': 'jpeg'
+        "generatedImgs": returned_generated_images,
+        "generatedImgsFormat": "jpeg"
     })
 
 def main():

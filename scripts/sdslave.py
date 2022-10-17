@@ -51,6 +51,13 @@ def doSD(job):
     })
 
 def main():
+    print("--> Starting Stable Diffusion Slave. This might take up to two minutes.")
+    sd_model = SDModel()
+
+    # Run Warm-Up Tests
+    sd_model.generate_images("warm-up", 1, 50)
+    print("--> Stable Diffusion Slave is up and running!")
+
     while(True):
         curJobs = json.loads(r.get('jobs'))['jobs']
         if(len(curJobs) > 0):

@@ -64,11 +64,11 @@ def health_check():
 
 
 with app.app_context():
-    print("--> Starting Stable Diffusion Server. This might take up to two minutes.")
-    sd_model = SDModel()
+    # print("--> Starting Stable Diffusion Server. This might take up to two minutes.")
+    # sd_model = SDModel()
 
     # Run Warm-Up Tests
-    sd_model.generate_images("warm-up", 1, 50)
+    # sd_model.generate_images("warm-up", 1, 50)
     print("--> Stable Diffusion Gunicorn Server is up and running!")
 
 

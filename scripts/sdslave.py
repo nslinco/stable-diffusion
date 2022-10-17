@@ -51,6 +51,7 @@ def doSD(job):
     })
 
 def main():
+    #Initialize Model
     print("--> Starting Stable Diffusion Slave. This might take up to two minutes.")
     sd_model = SDModel()
 
@@ -58,9 +59,14 @@ def main():
     sd_model.generate_images("warm-up", 1, 50)
     print("--> Stable Diffusion Slave is up and running!")
 
+    # Initialize Redis jobs
+    jobs = json.dumps({ 'jobs': [] })
+    r.set('jobs', jobs)
+
+    # Enter Work Loop
     while(True):
         curJobs = json.loads(r.get('jobs'))['jobs']
-        if(curJobs) curJobs = curJobs['jobs']
+        if(curJobs): curJobs = curJobs['jobs']
         if(len(curJobs) > 0):
             curJob = curJobs[0]
             doneJob = doSD(curJob)

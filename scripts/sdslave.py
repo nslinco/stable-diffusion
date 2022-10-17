@@ -72,3 +72,6 @@ def main():
                 jobs = json.dumps({ 'jobs': jobs})
                 r.set('jobs', jobs)
         time.sleep(1)
+
+if __name__ == "__main__":
+    main()

@@ -56,7 +56,7 @@ def main():
         if(len(curJobs) > 0):
             curJob = curJobs[0]
             doneJob = doSD(curJob)
-            if(!doneJob):
+            if(not doneJob):
                 print('Job Error:', curJob['_id'])
             else
                 print('Job Complete:', curJob['_id'])

@@ -29,7 +29,7 @@ def postResponse(jobId, response):
     x = requests.post('https://feedback-backend.herokuapp.com/create/callback', data=myobj)
     return (x)
 
-def doSD(job):
+def doSD(job, model):
     # Parse request
     print('doSD job: ', job)
     jobId = job['_id']
@@ -39,7 +39,7 @@ def doSD(job):
     num_steps = jobData["num_steps"]
 
     # Generate Images
-    generated_imgs = sd_model.generate_images(text_prompt, num_images, num_steps)
+    generated_imgs = model.generate_images(text_prompt, num_images, num_steps)
 
     # Encode Images
     returned_generated_images = encodeImgs(generated_imgs)
@@ -68,7 +68,7 @@ def main():
         curJobs = json.loads(r.get('jobs'))['jobs']
         if(len(curJobs) > 0):
             curJob = curJobs[0]
-            doneJob = doSD(curJob)
+            doneJob = doSD(curJob, sd_model)
             if(not doneJob):
                 print('Job Error:', curJob['_id'])
             else:

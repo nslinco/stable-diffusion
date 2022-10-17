@@ -51,7 +51,7 @@ def doSD(job):
     })
 
 def main():
-    while(true):
+    while(True):
         curJobs = json.loads(r.get('jobs'))['jobs']
         if(len(curJobs) > 0):
             curJob = curJobs[0]

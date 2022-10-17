@@ -60,6 +60,7 @@ def main():
 
     while(True):
         curJobs = json.loads(r.get('jobs'))['jobs']
+        if(curJobs) curJobs = curJobs['jobs']
         if(len(curJobs) > 0):
             curJob = curJobs[0]
             doneJob = doSD(curJob)

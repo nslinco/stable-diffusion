@@ -58,7 +58,7 @@ def main():
             doneJob = doSD(curJob)
             if(not doneJob):
                 print('Job Error:', curJob['_id'])
-            else
+            else:
                 print('Job Complete:', curJob['_id'])
                 jobs = json.loads(r.get('jobs'))['jobs']
                 jobs.remove(curJob)

@@ -50,7 +50,7 @@ def doSD(job):
         'generatedImgsFormat': 'jpeg'
     })
 
-def main();
+def main():
     while(true):
         curJobs = json.loads(r.get('jobs'))['jobs']
         if(len(curJobs) > 0):

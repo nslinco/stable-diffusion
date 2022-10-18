@@ -1,0 +1,15 @@
+# /home/ubuntu/stable-diffusion/img2imgslave.service => /etc/systemd/system/img2imgslave.service
+[Unit]
+Description=Stable Diffusion Img2Img Slave daemon
+After=redis.service
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/stable-diffusion
+Environment="PYTHONPATH=/home/ubuntu/stable-diffusion/scripts"
+ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/python /home/ubuntu/stable-diffusion/scripts/img2imgslave.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

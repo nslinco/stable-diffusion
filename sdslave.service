@@ -1,6 +1,6 @@
-# /home/ubuntu/stable-diffusion/celery.service => /etc/systemd/system/celery.service
+# /home/ubuntu/stable-diffusion/sdslave.service => /etc/systemd/system/sdslave.service
 [Unit]
-Description=Redis daemon
+Description=Stable Diffusion Slave daemon
 After=redis.service
 
 [Service]

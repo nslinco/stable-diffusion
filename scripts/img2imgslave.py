@@ -1,8 +1,10 @@
 import time
+import base64
+from io import BytesIO
 from flask import json
 
 from slavehelper import encodeImgs, postResponse
-from sdmodel import SDModel
+from img2imgmodel import SDModel
 
 # Initialize Redis
 import redis
@@ -11,17 +13,19 @@ r = redis.Redis(host='localhost', port=6379, db=0)
 # Initialize Model
 sd_model = None
 
-def doSD(job, model):
+# Perform Action
+def doImg2Img(job, model):
     # Parse request
     jobId = str(job['_id'])
     jobData = job['data']
-    
-    text_prompt = jobData["prompt"]
+
+    image = jobData["image"]
+    prompt = jobData["prompt"]
     num_images = jobData["num_images"]
     num_steps = jobData["num_steps"]
 
     # Generate Images
-    generated_imgs = model.generate_images(text_prompt, num_images, num_steps)
+    generated_imgs = model.generate_images(BytesIO(base64.b64decode(image)), prompt, num_images, num_steps)
 
     # Encode Images
     returned_generated_images = encodeImgs(generated_imgs)
@@ -32,14 +36,15 @@ def doSD(job, model):
         "generatedImgsFormat": "jpeg"
     })
 
+# Main
 def main():
     #Initialize Model
-    print("--> Starting Stable Diffusion Slave. This might take up to two minutes.")
+    print("--> Starting Stable Diffusion Img2Img Slave. This might take up to two minutes.")
     sd_model = SDModel()
 
     # Run Warm-Up Tests
-    sd_model.generate_images("warm-up", 1, 50)
-    print("--> Stable Diffusion Slave is up and running!")
+    # sd_model.generate_images("warm-up", 1, 50)
+    print("--> Stable Diffusion Img2Img Slave is up and running!")
 
     # Initialize Redis jobs
     jobs = json.dumps({ 'jobs': [] })
@@ -50,7 +55,7 @@ def main():
         curJobs = json.loads(r.get('jobs'))['jobs']
         if(len(curJobs) > 0):
             curJob = curJobs[0]
-            doneJob = doSD(curJob, sd_model)
+            doneJob = doImg2Img(curJob, sd_model)
             if(not doneJob):
                 print('Job Error:', curJob['_id'])
             else:

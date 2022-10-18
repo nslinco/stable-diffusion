@@ -1,4 +1,4 @@
-# /home/ubuntu/stable-diffusion/inpaint.service => /etc/systemd/system/inpaint.service
+# /home/ubuntu/stable-diffusion/img2img.service => /etc/systemd/system/img2img.service
 [Unit]
 Description=Img2img gunicorn daemon
 After=network.target

@@ -1,8 +1,7 @@
-import time
 import base64
 from io import BytesIO
 import requests
-from flask import jsonify, json
+from flask import json
 
 # Convert image arrays into base64-encoded image strings
 def encodeImgs(generated_imgs):

@@ -14,7 +14,7 @@ sd_model = None
 def doSD(job, model):
     # Parse request
     jobId = str(job['_id'])
-    jobData = job['data']
+    jobData = job['data']['inputs']
     
     text_prompt = jobData["prompt"]
     num_images = jobData["num_images"]

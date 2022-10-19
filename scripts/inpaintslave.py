@@ -17,7 +17,7 @@ sd_model = None
 def doInpaint(job, model):
     # Parse request
     jobId = str(job['_id'])
-    jobData = job['data']
+    jobData = job['data']['inputs']
 
     image = jobData["image"]
     mask = jobData["mask"]

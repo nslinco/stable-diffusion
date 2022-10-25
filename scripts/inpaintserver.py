@@ -22,7 +22,13 @@ def inpaint_api():
     r.set('jobs', json.dumps({'jobs': jobs}))
     
     # Report Job has started
-    return jsonify(job['_id'], 'working')
+    res = {}
+    res[job['_id']] = 'working'
+    return jsonify(
+        message=f"Working on {job['_id']}",
+        data=res,
+        status=200
+    )
 
 @app.route("/", methods=["GET"])
 @cross_origin()

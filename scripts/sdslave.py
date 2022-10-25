@@ -16,12 +16,36 @@ def doSD(job, model):
     jobId = str(job['_id'])
     jobData = job['data']['inputs']
     
-    text_prompt = jobData["prompt"]
-    num_images = jobData["num_images"]
-    num_steps = jobData["num_steps"]
+    prompt = jobData["prompt"]
+    n_samples = jobData["n_samples"]
+    ddim_steps = jobData["ddim_steps"]
+    plms = jobData["plms"]
+    fixed_code = jobData["fixed_code"]
+    ddim_eta = jobData["ddim_eta"]
+    n_iter = jobData["n_iter"]
+    H = jobData["H"]
+    W = jobData["W"]
+    C = jobData["C"]
+    f = jobData["f"]
+    scale = jobData["scale"]
+    precision = jobData["precision"]
 
     # Generate Images
-    generated_imgs = model.generate_images(text_prompt, num_images, num_steps)
+    generated_imgs = model.generate_images(
+        prompt,
+        n_samples,
+        ddim_steps,
+        plms,
+        fixed_code,
+        ddim_eta,
+        n_iter,
+        H,
+        W,
+        C,
+        f,
+        scale,
+        precision
+    )
 
     # Encode Images
     returned_generated_images = encodeImgs(generated_imgs)

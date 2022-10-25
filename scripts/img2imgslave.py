@@ -18,14 +18,29 @@ def doImg2Img(job, model):
     # Parse request
     jobId = str(job['_id'])
     jobData = job['data']['inputs']
-
+    
     image = jobData["image"].split(',')[1]
     prompt = jobData["prompt"]
-    num_images = jobData["num_images"]
-    num_steps = jobData["num_steps"]
+    plms = jobData["plms"]
+    n_samples = jobData["n_samples"]
+    ddim_steps = jobData["ddim_steps"]
+    ddim_eta = jobData["ddim_eta"]
+    scale = jobData["scale"]
+    strength = jobData["strength"]
+    precision = jobData["precision"]
 
     # Generate Images
-    generated_imgs = model.generate_images(BytesIO(base64.b64decode(image)), prompt, num_images, num_steps)
+    generated_imgs = model.generate_images(
+        BytesIO(base64.b64decode(image)),
+        prompt,
+        plms,
+        n_samples,
+        ddim_steps,
+        ddim_eta,
+        scale,
+        strength,
+        precision
+    )
 
     # Encode Images
     returned_generated_images = encodeImgs(generated_imgs)

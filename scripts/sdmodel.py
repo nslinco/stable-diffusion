@@ -96,9 +96,7 @@ def check_safety(x_image):
 
 class SDModel:
     def __init__(self) -> None:
-        self.optoutdir="outputs/txt2img-samples"
-        self.optskip_grid=True
-        self.optskip_save=True
+        self.optn_samples=1
         self.optddim_steps=50
         self.optplms=True
         self.optlaion400m=False
@@ -109,9 +107,7 @@ class SDModel:
         self.optW=512
         self.optC=4
         self.optf=8
-        self.optn_rows=0
         self.optscale=7.5
-        self.optfrom_file=""
         self.optconfig="configs/stable-diffusion/v1-inference.yaml"
         self.optckpt="/var/meadowrun/machine_cache/sd-v1-4.ckpt"
         self.optseed=42
@@ -121,7 +117,6 @@ class SDModel:
             print("Falling back to LAION 400M model...")
             self.optconfig = "configs/latent-diffusion/txt2img-1p4B-eval.yaml"
             self.optckpt = "models/ldm/text2img-large/model.ckpt"
-            self.optoutdir = "outputs/txt2img-samples-laion400m"
 
         seed_everything(self.optseed)
 
@@ -136,64 +131,66 @@ class SDModel:
         else:
             self.sampler = DDIMSampler(self.model)
 
-        # os.makedirs(self.optoutdir, exist_ok=True)
-        # self.outpath = self.optoutdir
-
         print("Creating invisible watermark encoder (see https://github.com/ShieldMnt/invisible-watermark)...")
         wm = "StableDiffusionV1"
         self.wm_encoder = WatermarkEncoder()
         self.wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
         print("Finished initializing the Stable Diffusion model")
 
-    def generate_images(self, prompt: str, num_predictions: int, num_steps: int):
-        print(f"Generating {num_predictions} images from prompt: {prompt}")
-        self.optddim_steps = num_steps
-        batch_size = num_predictions
-        n_rows = self.optn_rows if self.optn_rows > 0 else batch_size
-        if not self.optfrom_file:
-            assert prompt is not None
-            data = [batch_size * [prompt]]
+    def generate_images(
+        self,
+        prompt: str,
+        optn_samples=self.optn_samples,
+        optddim_steps=self.optddim_steps,
+        optplms=self.optplms,
+        optfixed_code=self.optfixed_code,
+        optddim_eta=self.optddim_eta,
+        optn_iter=self.optn_iter,
+        optH=self.optH,
+        optW=self.optW,
+        optC=self.optC,
+        optf=self.optf,
+        optscale=self.optscale,
+        optprecision=self.optprecision
+    ):
+        print(f"Generating {optn_samples} images from prompt: {prompt}")
+        batch_size = optn_samples
 
-        else:
-            print(f"reading prompts from {self.optfrom_file}")
-            with open(self.optfrom_file, "r") as f:
-                data = f.read().splitlines()
-                data = list(chunk(data, batch_size))
+        assert prompt is not None
+        data = [batch_size * [prompt]]
 
-        # sample_path = os.path.join(self.outpath, "samples")
-        # os.makedirs(sample_path, exist_ok=True)
-        # base_count = len(os.listdir(sample_path))
-        # grid_count = len(os.listdir(self.outpath)) - 1
+        if (not optplms):
+            self.sampler = DDIMSampler(self.model)
 
         start_code = None
-        if self.optfixed_code:
-            start_code = torch.randn([num_predictions, self.optC, self.optH // self.optf, self.optW // self.optf], device=self.device)
+        if optfixed_code:
+            start_code = torch.randn([optn_samples, optC, optH // optf, optW // optf], device=self.device)
 
         outimgs = []
 
-        precision_scope = autocast if self.optprecision=="autocast" else nullcontext
+        precision_scope = autocast if optprecision=="autocast" else nullcontext
         with torch.no_grad():
             with precision_scope("cuda"):
                 with self.model.ema_scope():
                     tic = time.time()
                     all_samples = list()
-                    for n in trange(self.optn_iter, desc="Sampling"):
+                    for n in trange(optn_iter, desc="Sampling"):
                         for prompts in tqdm(data, desc="data"):
                             uc = None
-                            if self.optscale != 1.0:
+                            if optscale != 1.0:
                                 uc = self.model.get_learned_conditioning(batch_size * [""])
                             if isinstance(prompts, tuple):
                                 prompts = list(prompts)
                             c = self.model.get_learned_conditioning(prompts)
-                            shape = [self.optC, self.optH // self.optf, self.optW // self.optf]
-                            samples_ddim, _ = self.sampler.sample(S=self.optddim_steps,
+                            shape = [optC, optH // optf, optW // optf]
+                            samples_ddim, _ = self.sampler.sample(S=optddim_steps,
                                                             conditioning=c,
-                                                            batch_size=num_predictions,
+                                                            batch_size=batch_size,
                                                             shape=shape,
                                                             verbose=False,
-                                                            unconditional_guidance_scale=self.optscale,
+                                                            unconditional_guidance_scale=optscale,
                                                             unconditional_conditioning=uc,
-                                                            eta=self.optddim_eta,
+                                                            eta=optddim_eta,
                                                             x_T=start_code)
 
                             x_samples_ddim = self.model.decode_first_stage(samples_ddim)
@@ -209,31 +206,6 @@ class SDModel:
                                 img = Image.fromarray(x_sample.astype(np.uint8))
                                 img = put_watermark(img, self.wm_encoder)
                                 outimgs.append(img)
-                                
-                            if not self.optskip_save:
-                                for x_sample in x_checked_image_torch:
-                                    x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                                    img = Image.fromarray(x_sample.astype(np.uint8))
-                                    img = put_watermark(img, self.wm_encoder)
-                                    img.save(os.path.join(sample_path, f"{base_count:05}.png"))
-                                    base_count += 1
-
-                            if not self.optskip_grid:
-                                all_samples.append(x_checked_image_torch)
-
-                    if not self.optskip_grid:
-                        # additionally, save as grid
-                        grid = torch.stack(all_samples, 0)
-                        grid = rearrange(grid, 'n b c h w -> (n b) c h w')
-                        grid = make_grid(grid, nrow=n_rows)
-
-                        # to image
-                        grid = 255. * rearrange(grid, 'c h w -> h w c').cpu().numpy()
-                        img = Image.fromarray(grid.astype(np.uint8))
-                        img = put_watermark(img, self.wm_encoder)
-                        img.save(os.path.join(self.outpath, f'grid-{grid_count:04}.png'))
-                        grid_count += 1
-
                     toc = time.time()
         print(f"Generated {len(outimgs)} images from prompt: [{prompt}] in {toc-tic}s")
         return(outimgs)

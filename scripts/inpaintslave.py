@@ -24,7 +24,11 @@ def doInpaint(job, model):
     num_steps = jobData["num_steps"]
 
     # Generate Images
-    generated_img = model.generate_image(BytesIO(base64.b64decode(image)), BytesIO(base64.b64decode(mask)), num_steps)
+    generated_img = model.generate_image(
+        BytesIO(base64.b64decode(image)),
+        BytesIO(base64.b64decode(mask)),
+        num_steps
+    )
 
     # Encode Images
     returned_generated_images = encodeImgs([generated_img])

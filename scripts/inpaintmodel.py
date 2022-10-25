@@ -32,26 +32,25 @@ def make_batch(image, mask, device):
 
 class InpaintModel:
     def __init__(self) -> None:
-        self.optindir=''                            # dir containing image-mask pairs (`example.png` and `example_mask.png`)",
-        self.optoutdir='outputs/inpaint-samples'    # dir to write results to
-
         config = OmegaConf.load("models/ldm/inpainting_big/config.yaml")
+
         self.model = instantiate_from_config(config.model)
-        self.model.load_state_dict(torch.load("/var/meadowrun/machine_cache/last.ckpt")["state_dict"],
-                            strict=False)
+        self.model.load_state_dict(torch.load("/var/meadowrun/machine_cache/last.ckpt")["state_dict"], strict=False)
 
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.model = self.model.to(self.device)
         self.sampler = DDIMSampler(self.model)
 
 
-    def generate_image(self, image, mask, num_steps: int):
-        # os.makedirs(self.optoutdir, exist_ok=True)
+    def generate_image(
+        self,
+        image,
+        mask,
+        num_steps: int
+        ):
         with torch.no_grad():
             with self.model.ema_scope():
-                # outpath = os.path.join(self.optoutdir, os.path.split(image)[1])
                 batch = make_batch(image, mask, device=self.device)
-
                 # encode masked image and concat downsampled mask
                 c = self.model.cond_stage_model.encode(batch["masked_image"])
                 cc = torch.nn.functional.interpolate(batch["mask"],

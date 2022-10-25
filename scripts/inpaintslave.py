@@ -19,8 +19,8 @@ def doInpaint(job, model):
     jobId = str(job['_id'])
     jobData = job['data']['inputs']
 
-    image = jobData["image"]
-    mask = jobData["mask"]
+    image = jobData["image"].split(',')[1]
+    mask = jobData["mask"].split(',')[1]
     num_steps = jobData["num_steps"]
 
     # Generate Images

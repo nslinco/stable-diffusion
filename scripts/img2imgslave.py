@@ -19,7 +19,7 @@ def doImg2Img(job, model):
     jobId = str(job['_id'])
     jobData = job['data']['inputs']
 
-    image = jobData["image"]
+    image = jobData["image"].split(',')[1]
     prompt = jobData["prompt"]
     num_images = jobData["num_images"]
     num_steps = jobData["num_steps"]

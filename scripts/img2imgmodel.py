@@ -98,7 +98,7 @@ class SDModel:
 
 
     def generate_images(self, image, prompt: str, num_images: int, num_steps: int):
-        batch_size = num_images
+        batch_size = self.optn_samples
         n_rows = self.optn_rows if self.optn_rows > 0 else batch_size
 
         assert prompt is not None

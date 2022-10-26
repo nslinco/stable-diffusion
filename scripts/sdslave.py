@@ -29,6 +29,7 @@ def doSD(job, model):
     f = jobData["f"]
     scale = jobData["scale"]
     precision = jobData["precision"]
+    seed = jobData["seed"]
 
     # Generate Images
     generated_imgs = model.generate_images(
@@ -44,7 +45,8 @@ def doSD(job, model):
         C,
         f,
         scale,
-        precision
+        precision,
+        seed
     )
 
     # Encode Images

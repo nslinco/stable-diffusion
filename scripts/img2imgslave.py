@@ -28,6 +28,7 @@ def doImg2Img(job, model):
     scale = jobData["scale"]
     strength = jobData["strength"]
     precision = jobData["precision"]
+    seed = jobData["seed"]
 
     # Generate Images
     generated_imgs = model.generate_images(
@@ -39,7 +40,8 @@ def doImg2Img(job, model):
         ddim_eta,
         scale,
         strength,
-        precision
+        precision,
+        seed
     )
 
     # Encode Images

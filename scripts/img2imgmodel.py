@@ -116,11 +116,15 @@ class SDModel:
             optddim_eta=self.optddim_eta,
             optscale=self.optscale,
             optstrength=self.optstrength,
-            optprecision=self.optprecision
+            optprecision=self.optprecision,
+            optseed=self.optseed
     ):
 
         # Start the clock
         tic = time.time()
+
+        # Seed Everything
+        seed_everything(optseed)
 
         # Initialize the batch size
         batch_size = optn_samples if optn_samples else optn_samples

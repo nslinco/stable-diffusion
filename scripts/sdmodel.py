@@ -151,9 +151,16 @@ class SDModel:
         optC=self.optC,
         optf=self.optf,
         optscale=self.optscale,
-        optprecision=self.optprecision
+        optprecision=self.optprecision,
+        optseed=self.optseed
     ):
         print(f"Generating {optn_samples} images from prompt: {prompt}")
+        
+        tic = time.time()
+
+        # Seed Everything
+        seed_everything(self.optseed)
+
         batch_size = optn_samples
 
         assert prompt is not None
@@ -172,7 +179,6 @@ class SDModel:
         with torch.no_grad():
             with precision_scope("cuda"):
                 with self.model.ema_scope():
-                    tic = time.time()
                     all_samples = list()
                     for n in trange(optn_iter, desc="Sampling"):
                         for prompts in tqdm(data, desc="data"):

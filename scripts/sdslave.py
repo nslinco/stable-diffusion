@@ -64,7 +64,7 @@ def main():
     sd_model = SDModel()
 
     # Run Warm-Up Tests
-    sd_model.generate_images("warm-up", 1, 50)
+    sd_model.generate_images("warm-up")
     print("--> Stable Diffusion Slave is up and running!")
 
     # Initialize Redis jobs

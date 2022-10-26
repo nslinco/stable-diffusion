@@ -221,7 +221,7 @@ class SDModel:
         prompt: str,
         optn_samples=1,
         optddim_steps=50,
-        optplms=True,
+        optplms=False,
         optfixed_code=True,
         etas=[0.0, 0.5, 0.8, 0.95],
         optn_iter=1,
@@ -234,7 +234,7 @@ class SDModel:
         seeds=[42]
     ):
 
-        print(f"Generating {optn_samples} images from prompt: {prompt}")
+        print(f"Generating {optn_samples * len(etas) * len(scales) * len(seeds)} images from bulk prompt: {prompt}")
         
         tic = time.time()
 
@@ -304,5 +304,5 @@ class SDModel:
                                             }
                                             outimgs.append(retObj)
         toc = time.time()
-        print(f"Generated {len(outimgs)} images from prompt: [{prompt}] in {toc-tic}s")
+        print(f"Generated {len(outimgs)} images from bulk prompt: [{prompt}] in {toc-tic}s")
         return(outimgs)

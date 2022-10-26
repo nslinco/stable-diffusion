@@ -215,3 +215,94 @@ class SDModel:
                     toc = time.time()
         print(f"Generated {len(outimgs)} images from prompt: [{prompt}] in {toc-tic}s")
         return(outimgs)
+
+    def generate_images_bulk(
+        self,
+        prompt: str,
+        optn_samples=1,
+        optddim_steps=50,
+        optplms=True,
+        optfixed_code=True,
+        etas=[0.0, 0.5, 0.8, 0.95],
+        optn_iter=1,
+        optH=512,
+        optW=512,
+        optC=4,
+        optf=8,
+        scales=[10, 15, 25, 40],
+        optprecision="autocast",
+        seeds=[42]
+    ):
+
+        print(f"Generating {optn_samples} images from prompt: {prompt}")
+        
+        tic = time.time()
+
+        batch_size = optn_samples
+
+        assert prompt is not None
+        data = [batch_size * [prompt]]
+
+        if (not optplms):
+            self.sampler = DDIMSampler(self.model)
+
+        start_code = None
+        if optfixed_code:
+            start_code = torch.randn([optn_samples, optC, optH // optf, optW // optf], device=self.device)
+
+        outimgs = []
+
+        precision_scope = autocast if optprecision=="autocast" else nullcontext
+        with torch.no_grad():
+            with precision_scope("cuda"):
+                with self.model.ema_scope():
+                    all_samples = list()
+                    for n in trange(optn_iter, desc="Sampling"):
+                        for prompts in tqdm(data, desc="data"):
+                            for optseed in seeds:
+                                # Seed Everything
+                                seed_everything(optseed)
+                                for optddim_eta in etas:
+                                    for optscale in scales:
+                                        uc = None
+                                        if optscale != 1.0:
+                                            uc = self.model.get_learned_conditioning(batch_size * [""])
+                                        if isinstance(prompts, tuple):
+                                            prompts = list(prompts)
+                                        c = self.model.get_learned_conditioning(prompts)
+                                        shape = [optC, optH // optf, optW // optf]
+                                        samples_ddim, _ = self.sampler.sample(S=optddim_steps,
+                                                                        conditioning=c,
+                                                                        batch_size=batch_size,
+                                                                        shape=shape,
+                                                                        verbose=False,
+                                                                        unconditional_guidance_scale=optscale,
+                                                                        unconditional_conditioning=uc,
+                                                                        eta=optddim_eta,
+                                                                        x_T=start_code)
+
+                                        x_samples_ddim = self.model.decode_first_stage(samples_ddim)
+                                        x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                                        x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
+
+                                        # x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
+
+                                        # x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
+                                        x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
+
+                                        for x_sample in x_checked_image_torch:
+                                            x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                                            img = Image.fromarray(x_sample.astype(np.uint8))
+                                            # img = put_watermark(img, self.wm_encoder)
+                                            retObj = {
+                                                "result": img,
+                                                "params": {
+                                                    "seed": optseed,
+                                                    "eta": optddim_eta,
+                                                    "scale": optscale,
+                                                }
+                                            }
+                                            outimgs.append(retObj)
+        toc = time.time()
+        print(f"Generated {len(outimgs)} images from prompt: [{prompt}] in {toc-tic}s")
+        return(outimgs)

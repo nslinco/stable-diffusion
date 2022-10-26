@@ -58,6 +58,29 @@ def doSD(job, model):
         "generatedImgsFormat": "jpeg"
     })
 
+def doSDBulk(job, model):
+    # Parse request
+    jobId = str(job['_id'])
+    jobData = job['data']['inputs']
+
+    prompt = jobData["prompt"]
+
+    # Generate Images
+    generated_imgs = model.generate_images_bulk(prompt)
+
+    # Encode Images
+    for idx, generated_img in enumerate(generated_imgs):
+        img = encodeImgs([generated_img['result']])[0]
+        generated_img['result'] = img
+        generated_imgs[idx] = generated_img
+    
+    # Return Images
+    return postResponse(jobId, {
+        "generatedImgs": generated_imgs,
+        "generatedImgsFormat": "jpeg",
+        "bulk": True
+    })
+
 def main():
     #Initialize Model
     print("--> Starting Stable Diffusion Slave. This might take up to two minutes.")
@@ -73,18 +96,25 @@ def main():
 
     # Enter Work Loop
     while(True):
-        curJobs = json.loads(r.get('jobs'))['jobs']
-        if(len(curJobs) > 0):
-            curJob = curJobs[0]
-            doneJob = doSD(curJob, sd_model)
-            if(not doneJob):
-                print('Job Error:', curJob['_id'])
-            else:
-                print('Job Complete:', curJob['_id'])
-                jobs = json.loads(r.get('jobs'))['jobs']
-                jobs.remove(curJob)
-                jobs = json.dumps({ 'jobs': jobs})
-                r.set('jobs', jobs)
+        try:
+            curJobs = json.loads(r.get('jobs'))['jobs']
+            if(len(curJobs) > 0):
+                curJob = curJobs[0]
+                doneJob = None
+                if (curJob['data']['bulk']):
+                    doneJob = doSDBulk(curJob, sd_model)
+                else:
+                    doneJob = doSD(curJob, sd_model)
+                if(not doneJob):
+                    print('Job Error:', curJob['_id'])
+                else:
+                    print('Job Complete:', curJob['_id'])
+                    jobs = json.loads(r.get('jobs'))['jobs']
+                    jobs.remove(curJob)
+                    jobs = json.dumps({ 'jobs': jobs})
+                    r.set('jobs', jobs)
+        except Exception as e:
+            print(f'Error!: {e}')
         time.sleep(1)
 
 if __name__ == "__main__":

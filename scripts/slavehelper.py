@@ -20,3 +20,10 @@ def postResponse(jobId, response):
     myobj[jobId] = response
     x = requests.post('https://feedback-backend.herokuapp.com/create/callback', headers = {}, json = myobj)
     return (x)
+
+# Call backend to report finished job
+def postUpdate(jobId, updateObj):
+    myobj = {}
+    myobj[jobId] = updateObj
+    x = requests.post('https://feedback-backend.herokuapp.com/create/update', headers = {}, json = myobj)
+    return (x)

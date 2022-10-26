@@ -110,14 +110,14 @@ class SDModel:
             self,
             image,
             prompt: str,
-            optplms=self.optplms,
-            optn_samples=self.optn_samples,
-            optddim_steps=self.optddim_steps,
-            optddim_eta=self.optddim_eta,
-            optscale=self.optscale,
-            optstrength=self.optstrength,
-            optprecision=self.optprecision,
-            optseed=self.optseed
+            optplms=False,
+            optn_samples=1,
+            optddim_steps=50,
+            optddim_eta=0.0,
+            optscale=5.0,
+            optstrength=0.75,
+            optprecision="autocast",
+            optseed=42
     ):
 
         # Start the clock

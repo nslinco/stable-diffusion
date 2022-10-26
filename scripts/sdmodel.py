@@ -140,26 +140,26 @@ class SDModel:
     def generate_images(
         self,
         prompt: str,
-        optn_samples=self.optn_samples,
-        optddim_steps=self.optddim_steps,
-        optplms=self.optplms,
-        optfixed_code=self.optfixed_code,
-        optddim_eta=self.optddim_eta,
-        optn_iter=self.optn_iter,
-        optH=self.optH,
-        optW=self.optW,
-        optC=self.optC,
-        optf=self.optf,
-        optscale=self.optscale,
-        optprecision=self.optprecision,
-        optseed=self.optseed
+        optn_samples=1,
+        optddim_steps=50,
+        optplms=True,
+        optfixed_code=True,
+        optddim_eta=0.0,
+        optn_iter=1,
+        optH=512,
+        optW=512,
+        optC=4,
+        optf=8,
+        optscale=7.5,
+        optprecision="autocast",
+        optseed=42
     ):
         print(f"Generating {optn_samples} images from prompt: {prompt}")
         
         tic = time.time()
 
         # Seed Everything
-        seed_everything(self.optseed)
+        seed_everything(optseed)
 
         batch_size = optn_samples
 

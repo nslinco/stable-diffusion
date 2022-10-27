@@ -21,6 +21,7 @@ from ldm.models.diffusion.plms import PLMSSampler
 from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
 from transformers import AutoFeatureExtractor
 
+from slavehelper import postUpdate
 
 # load safety model
 safety_model_id = "CompVis/stable-diffusion-safety-checker"

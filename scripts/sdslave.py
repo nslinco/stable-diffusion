@@ -64,7 +64,7 @@ def doSDBulk(job, model):
     jobData = job['data']['inputs']
 
     prompt = jobData["prompt"]
-    optddim_steps = jobData["ddim_steps"]
+    ddim_steps = jobData["ddim_steps"]
     etas = jobData["etas"]
     scales = jobData["scales"]
     seeds = jobData["seeds"]

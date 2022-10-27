@@ -218,23 +218,26 @@ class SDModel:
 
     def generate_images_bulk(
         self,
+        jobId,
         prompt: str,
-        optn_samples=1,
         optddim_steps=50,
-        optplms=False,
-        optfixed_code=True,
         etas=[0.0, 0.5, 0.8, 0.95],
-        optn_iter=1,
-        optH=512,
-        optW=512,
-        optC=4,
-        optf=8,
         scales=[10, 15, 25, 40],
-        optprecision="autocast",
         seeds=[42]
     ):
+        optn_samples=1
+        optplms=False
+        optfixed_code=True
+        optn_iter=1
+        optH=512
+        optW=512
+        optC=4
+        optf=8
+        optprecision="autocast"
 
-        print(f"Generating {optn_samples * len(etas) * len(scales) * len(seeds)} images from bulk prompt: {prompt}")
+        numerator = 1
+        denominator = optn_samples * len(etas) * len(scales) * len(seeds)
+        print(f"Generating {denominator} images from bulk prompt: {prompt}")
         
         tic = time.time()
 
@@ -264,6 +267,7 @@ class SDModel:
                                 seed_everything(optseed)
                                 for optddim_eta in etas:
                                     for optscale in scales:
+                                        iTic = time.time()
                                         uc = None
                                         if optscale != 1.0:
                                             uc = self.model.get_learned_conditioning(batch_size * [""])
@@ -294,15 +298,23 @@ class SDModel:
                                             x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
                                             img = Image.fromarray(x_sample.astype(np.uint8))
                                             # img = put_watermark(img, self.wm_encoder)
+                                            iToc = time.time()
+                                            iTime = iToc-iTic
                                             retObj = {
                                                 "result": img,
                                                 "params": {
                                                     "seed": optseed,
                                                     "eta": optddim_eta,
                                                     "scale": optscale,
-                                                }
+                                                },
+                                                "time": iTime
                                             }
                                             outimgs.append(retObj)
+                                            postUpdate(jobId, {
+                                                "numerator": numerator,
+                                                "denominator": denominator
+                                            })
+                                            numerator += 1
         toc = time.time()
         print(f"Generated {len(outimgs)} images from bulk prompt: [{prompt}] in {toc-tic}s")
         return(outimgs)

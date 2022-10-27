@@ -64,9 +64,20 @@ def doSDBulk(job, model):
     jobData = job['data']['inputs']
 
     prompt = jobData["prompt"]
+    optddim_steps = jobData["ddim_steps"]
+    etas = jobData["etas"]
+    scales = jobData["scales"]
+    seeds = jobData["seeds"]
 
     # Generate Images
-    generated_imgs = model.generate_images_bulk(prompt)
+    generated_imgs = model.generate_images_bulk(
+        jobId,
+        prompt,
+        ddim_steps,
+        etas,
+        scales,
+        seeds
+    )
 
     # Encode Images
     for idx, generated_img in enumerate(generated_imgs):

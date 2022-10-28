@@ -318,10 +318,15 @@ class SDModel:
                                         img = Image.fromarray(x_sample.astype(np.uint8))
                                         self.frames.append(img)
                                 print(f'frames: {len(self.frames)}')
+
+                                # Add reverse frames for bounce effect
+                                reversedFrames = self.frames[::-1]
+                                self.frames.extend(reversedFrames)
+                                print(f'extended frames: {len(self.frames)}')
                                 
                                 # Create animation
                                 buffered = BytesIO()
-                                gif = next(self.frames)
+                                gif = self.frames[0]
                                 gif.save(
                                     fp=buffered,
                                     format='GIF',

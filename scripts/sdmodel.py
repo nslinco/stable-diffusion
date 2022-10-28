@@ -302,22 +302,18 @@ class SDModel:
                                                                 eta=optddim_eta,
                                                                 x_T=start_code)
 
+                                # Break down output
+                                intermediates = intermediates['pred_x0']
+                                
                                 # Decode Intermediates
-                                print(f'intermediates: {len(intermediates)}', intermediates)
+                                print(f'intermediates: {len(intermediates)}')
                                 x_intermediates_ddim = self.model.decode_first_stage(intermediates)
-                                print('here1')
                                 x_intermediates_ddim = torch.clamp((x_intermediates_ddim + 1.0) / 2.0, min=0.0, max=1.0)
-                                print('here2')
                                 x_intermediates_ddim = x_intermediates_ddim.cpu().permute(0, 2, 3, 1).numpy()
-                                print('here3')
                                 x_intermediates_torch = torch.from_numpy(x_intermediates_ddim).permute(0, 3, 1, 2)
-                                print('here4')
                                 for x_sample in x_intermediates_torch:
-                                    print('x_sample: ', x_sample)
                                     x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                                    print('here5')
                                     img = Image.fromarray(x_sample.astype(np.uint8))
-                                    print('here6')
                                     self.frames.append(img)
                                 
                                 # Create animation

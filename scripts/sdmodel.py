@@ -220,9 +220,9 @@ class SDModel:
     def generate_images_bulk(
         self,
         jobId,
+        subJobs,
         prompt: str,
-        optddim_steps=50,
-        subJobs
+        optddim_steps=50
     ):
         optn_samples=1
         optplms=False

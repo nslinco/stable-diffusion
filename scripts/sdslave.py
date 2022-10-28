@@ -70,9 +70,9 @@ def doSDBulk(job, model):
     # Generate Images
     generated_imgs = model.generate_images_bulk(
         jobId,
+        subJobs,
         prompt,
-        ddim_steps,
-        subJobs
+        ddim_steps
     )
 
     # Encode Images

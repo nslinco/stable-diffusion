@@ -45,6 +45,18 @@ def sd_api():
         status=200
     )
 
+@app.route("/status", methods=["GET"])
+@cross_origin()
+def sd_status():
+    jobs = json.loads(r.get('jobs'))['jobs']
+    return jsonify(
+        message=f"Here are my current jobs",
+        data={
+            "jobs": jobs
+        },
+        status=200
+    )
+
 @app.route("/", methods=["GET"])
 @cross_origin()
 def health_check():

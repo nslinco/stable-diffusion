@@ -222,9 +222,7 @@ class SDModel:
         jobId,
         prompt: str,
         optddim_steps=50,
-        etas=[0.0, 0.5, 0.8, 0.95],
-        scales=[10, 15, 25, 40],
-        seeds=[42]
+        subJobs
     ):
         optn_samples=1
         optplms=False
@@ -237,7 +235,7 @@ class SDModel:
         optprecision="autocast"
 
         numerator = 1
-        denominator = optn_samples * len(etas) * len(scales) * len(seeds)
+        denominator = optn_samples * len(subJobs)
         print(f"Generating {denominator} images from bulk prompt: {prompt}")
         
         tic = time.time()
@@ -255,6 +253,9 @@ class SDModel:
             start_code = torch.randn([optn_samples, optC, optH // optf, optW // optf], device=self.device)
 
         outimgs = []
+        optseed = None
+        optddim_eta = None
+        optscale = None
 
         precision_scope = autocast if optprecision=="autocast" else nullcontext
         with torch.no_grad():
@@ -263,59 +264,61 @@ class SDModel:
                     all_samples = list()
                     for n in trange(optn_iter, desc="Sampling"):
                         for prompts in tqdm(data, desc="data"):
-                            for optseed in seeds:
-                                # Seed Everything
-                                seed_everything(optseed)
-                                for optddim_eta in etas:
-                                    for optscale in scales:
-                                        iTic = time.time()
-                                        uc = None
-                                        if optscale != 1.0:
-                                            uc = self.model.get_learned_conditioning(batch_size * [""])
-                                        if isinstance(prompts, tuple):
-                                            prompts = list(prompts)
-                                        c = self.model.get_learned_conditioning(prompts)
-                                        shape = [optC, optH // optf, optW // optf]
-                                        samples_ddim, _ = self.sampler.sample(S=optddim_steps,
-                                                                        conditioning=c,
-                                                                        batch_size=batch_size,
-                                                                        shape=shape,
-                                                                        verbose=False,
-                                                                        unconditional_guidance_scale=optscale,
-                                                                        unconditional_conditioning=uc,
-                                                                        eta=optddim_eta,
-                                                                        x_T=start_code)
+                            for subJob in subJobs:
+                                iTic = time.time()
+                                if (optseed != subJob['seed']):
+                                    optseed = subJob['seed']
+                                    seed_everything(optseed)
+                                optddim_eta = subJob['eta']
+                                optscale = subJob['scale']
+                                uc = None
+                                if optscale != 1.0:
+                                    uc = self.model.get_learned_conditioning(batch_size * [""])
+                                if isinstance(prompts, tuple):
+                                    prompts = list(prompts)
+                                c = self.model.get_learned_conditioning(prompts)
+                                shape = [optC, optH // optf, optW // optf]
+                                samples_ddim, _ = self.sampler.sample(S=optddim_steps,
+                                                                conditioning=c,
+                                                                batch_size=batch_size,
+                                                                shape=shape,
+                                                                verbose=False,
+                                                                unconditional_guidance_scale=optscale,
+                                                                unconditional_conditioning=uc,
+                                                                eta=optddim_eta,
+                                                                x_T=start_code)
 
-                                        x_samples_ddim = self.model.decode_first_stage(samples_ddim)
-                                        x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
-                                        x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
+                                x_samples_ddim = self.model.decode_first_stage(samples_ddim)
+                                x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                                x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
 
-                                        # x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
+                                # x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
 
-                                        # x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
-                                        x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
+                                # x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
+                                x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
 
-                                        for x_sample in x_checked_image_torch:
-                                            x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                                            img = Image.fromarray(x_sample.astype(np.uint8))
-                                            # img = put_watermark(img, self.wm_encoder)
-                                            iToc = time.time()
-                                            iTime = iToc-iTic
-                                            retObj = {
-                                                "result": img,
-                                                "params": {
-                                                    "seed": optseed,
-                                                    "eta": optddim_eta,
-                                                    "scale": optscale,
-                                                },
-                                                "time": iTime
-                                            }
-                                            outimgs.append(retObj)
-                                            postUpdate(jobId, {
-                                                "numerator": numerator,
-                                                "denominator": denominator
-                                            })
-                                            numerator += 1
+                                for x_sample in x_checked_image_torch:
+                                    x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                                    img = Image.fromarray(x_sample.astype(np.uint8))
+                                    # img = put_watermark(img, self.wm_encoder)
+                                    iToc = time.time()
+                                    iTime = iToc-iTic
+                                    retObj = {
+                                        "result": img,
+                                        "params": {
+                                            "seed": optseed,
+                                            "eta": optddim_eta,
+                                            "scale": optscale,
+                                        },
+                                        "time": iTime
+                                    }
+                                    outimgs.append(retObj)
+                                    postUpdate(jobId, {
+                                        "numerator": numerator,
+                                        "denominator": denominator
+                                    })
+                                    numerator += 1
+                                    print(f"Generated image in {iTime}s")
         toc = time.time()
         print(f"Generated {len(outimgs)} images from bulk prompt: [{prompt}] in {toc-tic}s")
         return(outimgs)

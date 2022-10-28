@@ -320,6 +320,7 @@ class SDModel:
                                 )
                                 gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
                                 gif_str = f'data:image/gif;base64,{gif_str}'
+                                frames = []
 
                                 # Create result
                                 for x_sample in x_checked_image_torch:

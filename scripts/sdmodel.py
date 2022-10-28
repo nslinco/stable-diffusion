@@ -142,15 +142,15 @@ class SDModel:
         self.wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
         print("Finished initializing the Stable Diffusion model")
 
-    def sampleCallback(self, img, i):
-        # wtf is this voodoo magic?
-        x_samples_ddim = self.model.decode_first_stage([img])
-        x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
-        x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
-        x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
-        x_sample = 255. * rearrange(x_checked_image_torch[0].cpu().numpy(), 'c h w -> h w c')
-        newFrame = Image.fromarray(x_sample.astype(np.uint8))
-        self.frames.append(newFrame)
+    # def sampleCallback(self, img, i):
+    #     # wtf is this voodoo magic?
+    #     x_samples_ddim = self.model.decode_first_stage([img])
+    #     x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+    #     x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
+    #     x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
+    #     x_sample = 255. * rearrange(x_checked_image_torch[0].cpu().numpy(), 'c h w -> h w c')
+    #     newFrame = Image.fromarray(x_sample.astype(np.uint8))
+    #     self.frames.append(newFrame)
 
     def generate_images(
         self,
@@ -292,7 +292,7 @@ class SDModel:
                                     prompts = list(prompts)
                                 c = self.model.get_learned_conditioning(prompts)
                                 shape = [optC, optH // optf, optW // optf]
-                                samples_ddim, _ = self.sampler.sample(S=optddim_steps,
+                                samples_ddim, intermediates = self.sampler.sample(S=optddim_steps,
                                                                 conditioning=c,
                                                                 batch_size=batch_size,
                                                                 shape=shape,
@@ -300,32 +300,40 @@ class SDModel:
                                                                 unconditional_guidance_scale=optscale,
                                                                 unconditional_conditioning=uc,
                                                                 eta=optddim_eta,
-                                                                x_T=start_code,
-                                                                img_callback=self.sampleCallback)
+                                                                x_T=start_code)
 
-                                x_samples_ddim = self.model.decode_first_stage(samples_ddim)
-                                x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
-                                x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
-
-                                # x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
-
-                                # x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
-                                x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
-
+                                # Decode Intermediates
+                                x_intermediates_ddim = self.model.decode_first_stage(intermediates)
+                                x_intermediates_ddim = torch.clamp((x_intermediates_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                                x_intermediates_ddim = x_intermediates_ddim.cpu().permute(0, 2, 3, 1).numpy()
+                                x_intermediates_torch = torch.from_numpy(x_intermediates_ddim).permute(0, 3, 1, 2)
+                                for x_sample in x_intermediates_torch:
+                                    x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                                    img = Image.fromarray(x_sample.astype(np.uint8))
+                                    self.frames.append(img)
+                                
                                 # Create animation
                                 buffered = BytesIO()
-                                gif = next(frames)
+                                gif = next(self.frames)
                                 gif.save(
                                     fp=buffered,
                                     format='GIF',
-                                    append_images=frames,
+                                    append_images=self.frames,
                                     save_all=True,
                                     duration=1000,
                                     loop=0
                                 )
                                 gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
                                 gif_str = f'data:image/gif;base64,{gif_str}'
-                                frames = []
+                                self.frames = []
+
+                                # Decode Samples
+                                x_samples_ddim = self.model.decode_first_stage(samples_ddim)
+                                x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                                x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
+                                # x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
+                                # x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
+                                x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
 
                                 # Create result
                                 for x_sample in x_checked_image_torch:

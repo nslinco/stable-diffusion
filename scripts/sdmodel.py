@@ -301,7 +301,7 @@ class SDModel:
                                                                 unconditional_conditioning=uc,
                                                                 eta=optddim_eta,
                                                                 x_T=start_code,
-                                                                img_callback=sampleCallback)
+                                                                img_callback=self.sampleCallback)
 
                                 x_samples_ddim = self.model.decode_first_stage(samples_ddim)
                                 x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)

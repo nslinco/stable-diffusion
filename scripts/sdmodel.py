@@ -346,8 +346,8 @@ class SDModel:
                                 gifName = f"{jobId}-{numerator}.gif"
 
                                 # Upload to s3 bucket
-                                # buffered.seek(0)
-                                uploaded = client.upload_fileobj(buffered, 'meadowrun-sd-69', gifName)
+                                buffered.seek(0)
+                                uploaded = client.upload_fileobj(buffered, 'meadowrun-sd-69', 'animations/{}'.format(gifName))
                                 print(f"Uploaded to S3 bucket: {uploaded}")
 
                                 # Decode Samples

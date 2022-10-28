@@ -35,7 +35,8 @@ frames = []
 
 def sampleCallback(img, i):
     # x_sample = 255. * rearrange(img.cpu().numpy(), 'c h w -> h w c')
-    newFrame = Image.fromarray(img.astype(np.uint8))
+    # newFrame = Image.fromarray(img.astype(np.uint8))
+    newFrame = Image.fromarray(img.numpy().astype(np.uint8))
     frames.append(newFrame)
 
 def chunk(it, size):

@@ -22,12 +22,21 @@ from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionS
 from transformers import AutoFeatureExtractor
 
 from slavehelper import postUpdate
+import base64
+from io import BytesIO
 
 # load safety model
 safety_model_id = "CompVis/stable-diffusion-safety-checker"
 safety_feature_extractor = AutoFeatureExtractor.from_pretrained(safety_model_id)
 safety_checker = StableDiffusionSafetyChecker.from_pretrained(safety_model_id)
 
+# Initialize frames
+frames = []
+
+def sampleCallback(img):
+    x_sample = 255. * rearrange(img.cpu().numpy(), 'c h w -> h w c')
+    newFrame = Image.fromarray(x_sample.astype(np.uint8))
+    frames.append(newFrame)
 
 def chunk(it, size):
     it = iter(it)
@@ -286,7 +295,8 @@ class SDModel:
                                                                 unconditional_guidance_scale=optscale,
                                                                 unconditional_conditioning=uc,
                                                                 eta=optddim_eta,
-                                                                x_T=start_code)
+                                                                x_T=start_code,
+                                                                img_callback=sampleCallback)
 
                                 x_samples_ddim = self.model.decode_first_stage(samples_ddim)
                                 x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
@@ -297,6 +307,21 @@ class SDModel:
                                 # x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
                                 x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
 
+                                # Create animation
+                                buffered = BytesIO()
+                                gif = next(frames)
+                                gif.save(
+                                    fp=buffered,
+                                    format='GIF',
+                                    append_images=frames,
+                                    save_all=True,
+                                    duration=1000,
+                                    loop=0
+                                )
+                                gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                                gif_str = f'data:image/gif;base64,{gif_str}'
+
+                                # Create result
                                 for x_sample in x_checked_image_torch:
                                     x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
                                     img = Image.fromarray(x_sample.astype(np.uint8))
@@ -310,7 +335,8 @@ class SDModel:
                                             "eta": optddim_eta,
                                             "scale": optscale,
                                         },
-                                        "time": iTime
+                                        "time": iTime,
+                                        "animation": gif_str
                                     }
                                     outimgs.append(retObj)
                                     postUpdate(jobId, {
@@ -318,7 +344,7 @@ class SDModel:
                                         "denominator": denominator
                                     })
                                     numerator += 1
-                                    print(f"Generated image in {iTime}s")
+                                    print(f"Generated image {numerator}/{denominator} in {iTime}s")
         toc = time.time()
         print(f"Generated {len(outimgs)} images from bulk prompt: [{prompt}] in {toc-tic}s")
         return(outimgs)

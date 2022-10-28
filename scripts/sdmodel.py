@@ -320,6 +320,7 @@ class SDModel:
                                         x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
                                         img = Image.fromarray(x_sample.astype(np.uint8))
                                         self.frames.append(img)
+                                self.frames.pop(0)
                                 print(f'frames: {len(self.frames)}')
 
                                 # Add reverse frames for bounce effect
@@ -335,7 +336,7 @@ class SDModel:
                                     format='GIF',
                                     append_images=self.frames,
                                     save_all=True,
-                                    duration=1000,
+                                    duration=(int)(1000/len(self.frames)),
                                     loop=0
                                 )
                                 # gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")

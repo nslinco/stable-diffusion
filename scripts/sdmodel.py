@@ -30,14 +30,6 @@ safety_model_id = "CompVis/stable-diffusion-safety-checker"
 safety_feature_extractor = AutoFeatureExtractor.from_pretrained(safety_model_id)
 safety_checker = StableDiffusionSafetyChecker.from_pretrained(safety_model_id)
 
-# Initialize frames
-frames = []
-
-def sampleCallback(img, i):
-    # x_sample = 255. * rearrange(img.cpu().numpy(), 'c h w -> h w c')
-    # newFrame = Image.fromarray(img.astype(np.uint8))
-    newFrame = Image.fromarray(img.cpu().numpy().astype(np.uint8))
-    frames.append(newFrame)
 
 def chunk(it, size):
     it = iter(it)
@@ -123,6 +115,8 @@ class SDModel:
         self.optckpt="/var/meadowrun/machine_cache/sd-v1-4.ckpt"
         self.optseed=42
         self.optprecision="autocast"
+        
+        self.frames = []
 
         if self.optlaion400m:
             print("Falling back to LAION 400M model...")
@@ -147,6 +141,16 @@ class SDModel:
         self.wm_encoder = WatermarkEncoder()
         self.wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
         print("Finished initializing the Stable Diffusion model")
+
+    def sampleCallback(self, img, i):
+        # wtf is this voodoo magic?
+        x_samples_ddim = self.model.decode_first_stage([img])
+        x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+        x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
+        x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
+        x_sample = 255. * rearrange(x_checked_image_torch[0].cpu().numpy(), 'c h w -> h w c')
+        newFrame = Image.fromarray(x_sample.astype(np.uint8))
+        self.frames.append(newFrame)
 
     def generate_images(
         self,

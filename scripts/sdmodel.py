@@ -33,7 +33,7 @@ safety_checker = StableDiffusionSafetyChecker.from_pretrained(safety_model_id)
 # Initialize frames
 frames = []
 
-def sampleCallback(img):
+def sampleCallback(img, i):
     x_sample = 255. * rearrange(img.cpu().numpy(), 'c h w -> h w c')
     newFrame = Image.fromarray(x_sample.astype(np.uint8))
     frames.append(newFrame)

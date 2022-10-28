@@ -8,6 +8,7 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/stable-diffusion
 Environment="PYTHONPATH=/home/ubuntu/stable-diffusion/scripts"
+Environment="AWS_SHARED_CREDENTIALS_FILE=/home/ubuntu/stable-diffusion/.aws/credentials"
 ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/python /home/ubuntu/stable-diffusion/scripts/sdslave.py
 Restart=always
 

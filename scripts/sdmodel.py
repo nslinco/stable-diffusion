@@ -300,10 +300,11 @@ class SDModel:
                                                                 unconditional_guidance_scale=optscale,
                                                                 unconditional_conditioning=uc,
                                                                 eta=optddim_eta,
-                                                                x_T=start_code)
+                                                                x_T=start_code,
+                                                                log_every_t=1)
 
                                 # Break down output
-                                intermediates = intermediates['pred_x0']
+                                intermediates = intermediates['x_inter']
                                 
                                 # Decode Intermediates
                                 print(f'intermediates: {len(intermediates)}')

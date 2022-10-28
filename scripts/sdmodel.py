@@ -24,6 +24,9 @@ from transformers import AutoFeatureExtractor
 from slavehelper import postUpdate
 import base64
 from io import BytesIO
+import boto3
+
+client = boto3.client('s3', region_name='us-west-1')
 
 # load safety model
 safety_model_id = "CompVis/stable-diffusion-safety-checker"
@@ -248,7 +251,7 @@ class SDModel:
         optf=8
         optprecision="autocast"
 
-        numerator = 1
+        numerator = 0
         denominator = optn_samples * len(subJobs)
         print(f"Generating {denominator} images from bulk prompt: {prompt}")
         
@@ -335,9 +338,17 @@ class SDModel:
                                     duration=1000,
                                     loop=0
                                 )
-                                gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-                                gif_str = f'data:image/gif;base64,{gif_str}'
+                                # gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                                # gif_str = f'data:image/gif;base64,{gif_str}'
                                 self.frames = []
+
+                                # Name GIF
+                                gifName = f"{jobId}-{numerator}.gif"
+
+                                # Upload to s3 bucket
+                                # buffered.seek(0)
+                                uploaded = client.upload_fileobj(buffered, 'meadowrun-sd-69', gifName)
+                                print(f"Uploaded to S3 bucket: {uploaded}")
 
                                 # Decode Samples
                                 x_samples_ddim = self.model.decode_first_stage(samples_ddim)
@@ -362,14 +373,14 @@ class SDModel:
                                             "scale": optscale,
                                         },
                                         "time": iTime,
-                                        "animation": gif_str
+                                        "animation": gifName
                                     }
                                     outimgs.append(retObj)
+                                    numerator += 1
                                     postUpdate(jobId, {
                                         "numerator": numerator,
                                         "denominator": denominator
                                     })
-                                    numerator += 1
                                     print(f"Generated image {numerator}/{denominator} in {iTime}s")
         toc = time.time()
         print(f"Generated {len(outimgs)} images from bulk prompt: [{prompt}] in {toc-tic}s")

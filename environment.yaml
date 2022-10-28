@@ -14,6 +14,7 @@ dependencies:
     - flask-cors
     - gunicorn
     - redis
+    - boto3
     - albumentations==0.4.3
     - diffusers
     - opencv-python==4.1.2.30

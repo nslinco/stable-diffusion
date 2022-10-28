@@ -348,7 +348,12 @@ class SDModel:
 
                                 # Upload to s3 bucket
                                 buffered.seek(0)
-                                uploaded = client.upload_fileobj(buffered, 'meadowrun-sd-69', 'animations/{}'.format(gifName))
+                                uploaded = client.upload_fileobj(
+                                    buffered,
+                                    'meadowrun-sd-69',
+                                    'animations/{}'.format(gifName),
+                                    ExtraArgs={'ACL':'public-read'}
+                                )
                                 print(f"Uploaded to S3 bucket: {uploaded}")
 
                                 # Decode Samples

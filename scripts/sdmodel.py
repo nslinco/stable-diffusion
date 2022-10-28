@@ -308,14 +308,16 @@ class SDModel:
                                 
                                 # Decode Intermediates
                                 print(f'intermediates: {len(intermediates)}')
-                                x_intermediates_ddim = self.model.decode_first_stage(intermediates)
-                                x_intermediates_ddim = torch.clamp((x_intermediates_ddim + 1.0) / 2.0, min=0.0, max=1.0)
-                                x_intermediates_ddim = x_intermediates_ddim.cpu().permute(0, 2, 3, 1).numpy()
-                                x_intermediates_torch = torch.from_numpy(x_intermediates_ddim).permute(0, 3, 1, 2)
-                                for x_sample in x_intermediates_torch:
-                                    x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                                    img = Image.fromarray(x_sample.astype(np.uint8))
-                                    self.frames.append(img)
+                                for intermediate in intermediates:
+                                    x_intermediates_ddim = self.model.decode_first_stage(intermediate)
+                                    x_intermediates_ddim = torch.clamp((x_intermediates_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                                    x_intermediates_ddim = x_intermediates_ddim.cpu().permute(0, 2, 3, 1).numpy()
+                                    x_intermediates_torch = torch.from_numpy(x_intermediates_ddim).permute(0, 3, 1, 2)
+                                    for x_sample in x_intermediates_torch:
+                                        x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                                        img = Image.fromarray(x_sample.astype(np.uint8))
+                                        self.frames.append(img)
+                                print(f'frames: {len(self.frames)}')
                                 
                                 # Create animation
                                 buffered = BytesIO()

@@ -111,6 +111,7 @@ def main():
                 curJob = curJobs[0]
                 doneJob = None
                 if (curJob['data']['bulk']):
+                    print(f'Starting bulk job: {curJob["_id"]}')
                     doneJob = doSDBulk(curJob, sd_model)
                 else:
                     doneJob = doSD(curJob, sd_model)

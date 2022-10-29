@@ -255,7 +255,7 @@ class SDModel:
 
         numerator = 0
         denominator = optn_samples * len(subJobs)
-        print(f"Generating {denominator} images from bulk prompt: {prompt}")
+        print(f"Generating {denominator} images for bulk job: {jobId}")
         
         tic = time.time()
 

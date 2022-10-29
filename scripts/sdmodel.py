@@ -238,7 +238,6 @@ class SDModel:
         self,
         jobId,
         subJobs,
-        prompt: str,
         optddim_steps=50,
         animate=False,
         mask=None
@@ -262,9 +261,6 @@ class SDModel:
 
         batch_size = optn_samples
 
-        assert prompt is not None
-        data = [batch_size * [prompt]]
-
         if (not optplms):
             self.sampler = DDIMSampler(self.model)
 
@@ -283,14 +279,27 @@ class SDModel:
                 with self.model.ema_scope():
                     all_samples = list()
                     for n in trange(optn_iter, desc="Sampling"):
-                        for prompts in tqdm(data, desc="data"):
-                            for subJob in subJobs:
-                                iTic = time.time()
-                                if (optseed != subJob['seed']):
-                                    optseed = subJob['seed']
-                                    seed_everything(optseed)
-                                optddim_eta = subJob['eta']
-                                optscale = subJob['scale']
+                        for subJob in subJobs:
+                            # Start the clock
+                            iTic = time.time()
+
+                            # Parse job
+                            optjobUID = subJob['jobUID']
+                            optprompt = subJob['prompt']
+                            optmodifier = subJob['modifier']
+
+                            prompt = optprompt + ', ' + optmodifier
+
+                            data = [batch_size * [prompt]]
+
+                            if (optseed != subJob['seed']):
+                                optseed = subJob['seed']
+                                seed_everything(optseed)
+                            optddim_eta = subJob['eta']
+                            optscale = subJob['scale']
+
+                            # Iterate why?
+                            for prompts in tqdm(data, desc="data"):
                                 uc = None
                                 if optscale != 1.0:
                                     uc = self.model.get_learned_conditioning(batch_size * [""])
@@ -351,7 +360,7 @@ class SDModel:
                                     self.frames = []
 
                                     # Name GIF
-                                    gifName = f"{jobId}-{optseed}-{optddim_eta}-{optscale}.gif"
+                                    gifName = f"{jobId}-{optjobUID}.gif"
 
                                     # Upload to s3 bucket
                                     buffered.seek(0)
@@ -373,14 +382,32 @@ class SDModel:
 
                                 # Create result
                                 for x_sample in x_checked_image_torch:
+                                    # Format Image
                                     x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
                                     img = Image.fromarray(x_sample.astype(np.uint8))
+                                    buffered = BytesIO()
+                                    img.save(fp=buffered, format='jpeg')
+
+                                    # Name image
+                                    imgName = f"{jobId}-{optjobUID}.jpeg"
+
+                                    # Upload to s3 bucket
+                                    buffered.seek(0)
+                                    client.upload_fileobj(
+                                        buffered,
+                                        'meadowrun-sd-69',
+                                        'images/{}'.format(imgName),
+                                        ExtraArgs={'ACL':'public-read'}
+                                    )
+
                                     # img = put_watermark(img, self.wm_encoder)
                                     iToc = time.time()
                                     iTime = iToc-iTic
                                     retObj = {
-                                        "result": img,
+                                        "result": imgName,
                                         "params": {
+                                            "prompt": optprompt,
+                                            "modifier": optmodifier,
                                             "seed": optseed,
                                             "eta": optddim_eta,
                                             "scale": optscale,

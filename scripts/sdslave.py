@@ -64,7 +64,6 @@ def doSDBulk(job, model):
     jobData = job['data']['inputs']
 
     subJobs = jobData["subJobs"]
-    prompt = jobData["prompt"]
     ddim_steps = jobData["ddim_steps"]
     animate = jobData["animate"]
     mask = jobData["mask"]
@@ -73,17 +72,16 @@ def doSDBulk(job, model):
     generated_imgs = model.generate_images_bulk(
         jobId,
         subJobs,
-        prompt,
         ddim_steps,
         animate,
         mask
     )
 
     # Encode Images
-    for idx, generated_img in enumerate(generated_imgs):
-        img = encodeImgs([generated_img['result']])[0]
-        generated_img['result'] = img
-        generated_imgs[idx] = generated_img
+    # for idx, generated_img in enumerate(generated_imgs):
+    #     img = encodeImgs([generated_img['result']])[0]
+    #     generated_img['result'] = img
+    #     generated_imgs[idx] = generated_img
     
     # Return Images
     return postResponse(jobId, {

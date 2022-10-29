@@ -351,7 +351,7 @@ class SDModel:
                                     self.frames = []
 
                                     # Name GIF
-                                    gifName = f"{jobId}-{numerator}.gif"
+                                    gifName = f"{jobId}-{optseed}-{optddim_eta}-{optscale}.gif"
 
                                     # Upload to s3 bucket
                                     buffered.seek(0)

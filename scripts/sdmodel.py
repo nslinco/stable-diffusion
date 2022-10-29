@@ -239,7 +239,9 @@ class SDModel:
         jobId,
         subJobs,
         prompt: str,
-        optddim_steps=50
+        optddim_steps=50,
+        animate=False,
+        mask=None
     ):
         optn_samples=1
         optplms=False
@@ -250,6 +252,7 @@ class SDModel:
         optC=4
         optf=8
         optprecision="autocast"
+        logRate = 1 if animate else 100
 
         numerator = 0
         denominator = optn_samples * len(subJobs)
@@ -304,57 +307,61 @@ class SDModel:
                                                                 unconditional_conditioning=uc,
                                                                 eta=optddim_eta,
                                                                 x_T=start_code,
-                                                                log_every_t=1)
+                                                                log_every_t=logRate,
+                                                                mask=mask)
 
-                                # Break down output
-                                intermediates = intermediates['pred_x0']
-                                
-                                # Decode Intermediates
-                                print(f'intermediates: {len(intermediates)}')
-                                for intermediate in intermediates:
-                                    x_intermediates_ddim = self.model.decode_first_stage(intermediate)
-                                    x_intermediates_ddim = torch.clamp((x_intermediates_ddim + 1.0) / 2.0, min=0.0, max=1.0)
-                                    x_intermediates_ddim = x_intermediates_ddim.cpu().permute(0, 2, 3, 1).numpy()
-                                    x_intermediates_torch = torch.from_numpy(x_intermediates_ddim).permute(0, 3, 1, 2)
-                                    for x_sample in x_intermediates_torch:
-                                        x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                                        img = Image.fromarray(x_sample.astype(np.uint8))
-                                        self.frames.append(img)
-                                self.frames.pop(0)
-                                print(f'frames: {len(self.frames)}')
+                                # Initialize Animation fn
+                                gifName = None
+                                if (animate):
+                                    # Break down output
+                                    intermediates = intermediates['pred_x0']
+                                    
+                                    # Decode Intermediates
+                                    print(f'intermediates: {len(intermediates)}')
+                                    for intermediate in intermediates:
+                                        x_intermediates_ddim = self.model.decode_first_stage(intermediate)
+                                        x_intermediates_ddim = torch.clamp((x_intermediates_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                                        x_intermediates_ddim = x_intermediates_ddim.cpu().permute(0, 2, 3, 1).numpy()
+                                        x_intermediates_torch = torch.from_numpy(x_intermediates_ddim).permute(0, 3, 1, 2)
+                                        for x_sample in x_intermediates_torch:
+                                            x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                                            img = Image.fromarray(x_sample.astype(np.uint8))
+                                            self.frames.append(img)
+                                    self.frames.pop(0)
+                                    print(f'frames: {len(self.frames)}')
 
-                                # Add reverse frames for bounce effect
-                                reversedFrames = self.frames[::-1]
-                                self.frames.extend(reversedFrames)
-                                print(f'extended frames: {len(self.frames)}')
-                                
-                                # Create animation
-                                buffered = BytesIO()
-                                gif = self.frames[0]
-                                gif.save(
-                                    fp=buffered,
-                                    format='GIF',
-                                    append_images=self.frames,
-                                    save_all=True,
-                                    duration=(int)(1000/len(self.frames)),
-                                    loop=0
-                                )
-                                # gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-                                # gif_str = f'data:image/gif;base64,{gif_str}'
-                                self.frames = []
+                                    # Add reverse frames for bounce effect
+                                    reversedFrames = self.frames[::-1]
+                                    self.frames.extend(reversedFrames)
+                                    print(f'extended frames: {len(self.frames)}')
+                                    
+                                    # Create animation
+                                    buffered = BytesIO()
+                                    gif = self.frames[0]
+                                    gif.save(
+                                        fp=buffered,
+                                        format='GIF',
+                                        append_images=self.frames,
+                                        save_all=True,
+                                        duration=(int)(1000/len(self.frames)),
+                                        loop=0
+                                    )
+                                    # gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                                    # gif_str = f'data:image/gif;base64,{gif_str}'
+                                    self.frames = []
 
-                                # Name GIF
-                                gifName = f"{jobId}-{numerator}.gif"
+                                    # Name GIF
+                                    gifName = f"{jobId}-{numerator}.gif"
 
-                                # Upload to s3 bucket
-                                buffered.seek(0)
-                                uploaded = client.upload_fileobj(
-                                    buffered,
-                                    'meadowrun-sd-69',
-                                    'animations/{}'.format(gifName),
-                                    ExtraArgs={'ACL':'public-read'}
-                                )
-                                print(f"Uploaded to S3 bucket: {uploaded}")
+                                    # Upload to s3 bucket
+                                    buffered.seek(0)
+                                    uploaded = client.upload_fileobj(
+                                        buffered,
+                                        'meadowrun-sd-69',
+                                        'animations/{}'.format(gifName),
+                                        ExtraArgs={'ACL':'public-read'}
+                                    )
+                                    print(f"Uploaded to S3 bucket: {uploaded}")
 
                                 # Decode Samples
                                 x_samples_ddim = self.model.decode_first_stage(samples_ddim)

@@ -307,7 +307,7 @@ class SDModel:
                                                                 log_every_t=1)
 
                                 # Break down output
-                                intermediates = intermediates['x_inter']
+                                intermediates = intermediates['pred_x0']
                                 
                                 # Decode Intermediates
                                 print(f'intermediates: {len(intermediates)}')

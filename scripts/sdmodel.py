@@ -332,18 +332,18 @@ class SDModel:
 
                                     # Add reverse frames for bounce effect
                                     reversedFrames = self.frames[::-1]
-                                    self.frames.extend(reversedFrames)
-                                    print(f'extended frames: {len(self.frames)}')
+                                    reversedFrames.extend(self.frames)
+                                    print(f'extended frames: {len(reversedFrames)}')
                                     
                                     # Create animation
                                     buffered = BytesIO()
-                                    gif = self.frames[0]
+                                    gif = reversedFrames[0]
                                     gif.save(
                                         fp=buffered,
                                         format='GIF',
-                                        append_images=self.frames,
+                                        append_images=reversedFrames,
                                         save_all=True,
-                                        duration=(int)(1000/len(self.frames)),
+                                        duration=(int)(1000/len(reversedFrames)),
                                         loop=0
                                     )
                                     # gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")

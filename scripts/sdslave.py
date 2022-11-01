@@ -125,6 +125,7 @@ def main():
             curJobs = json.loads(r.get('jobs'))['jobs']
             if(len(curJobs) > 0):
                 curJob = curJobs[0]
+                print(f'Starting quick job: {curJob["_id"]}')
                 doneJob = doSDQuick(curJob, sd_model)
 
                 # doneJob = None

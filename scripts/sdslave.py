@@ -146,7 +146,9 @@ def main():
                     r.set('jobs', jobs)
         except Exception as e:
             print(f'Error!: {e}')
-        time.sleep(1)
+        r.set('status', 'sleeping')
+        time.sleep(5)
+        r.set('status', 'waiting')
 
 if __name__ == "__main__":
     main()

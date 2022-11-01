@@ -94,12 +94,8 @@ def doSDQuick(job, model):
         r.set('status', 'waiting')
 
         # Report Results
-        newJob = postResponse(job["parentId"], generated_imgs)
-        if (newJob):
-            # Save Next Job
-            jobs = json.loads(r.get('jobs'))['jobs']
-            jobs.append(newJob)
-            r.set('jobs', json.dumps({'jobs': jobs}))
+        newJob = postResponse(job["parentId"], generated_imgs).json()
+        return (newJob)
     except Exception as e:
         print(f'doSDQuick Error: {e}')
         r.set('status', 'failed')
@@ -126,7 +122,7 @@ def main():
             if(len(curJobs) > 0):
                 curJob = curJobs[0]
                 print(f'Starting quick job: {curJob["_id"]}')
-                doneJob = doSDQuick(curJob, sd_model)
+                newJob = doSDQuick(curJob, sd_model)
 
                 # doneJob = None
                 # if (curJob['data']['bulk']):
@@ -135,15 +131,13 @@ def main():
                 # else:
                 #     print(f'Starting job: {curJob["_id"]}')
                 #     doneJob = doSD(curJob, sd_model)
-                
-                if(not doneJob):
-                    print('Job Error:', curJob['_id'])
-                else:
-                    print('Job Complete:', curJob['_id'])
-                    jobs = json.loads(r.get('jobs'))['jobs']
-                    jobs.remove(curJob)
-                    jobs = json.dumps({ 'jobs': jobs})
-                    r.set('jobs', jobs)
+
+                print('Job Complete:', curJob['_id'])
+                jobs = json.loads(r.get('jobs'))['jobs']
+                jobs.remove(curJob)
+                if(newJob):
+                    jobs.append(newJob)
+                r.set('jobs', json.dumps({ 'jobs': jobs}))
             else:
                 newJob = getRequest()
                 print("newJob: ", newJob)

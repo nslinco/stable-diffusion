@@ -17,7 +17,7 @@ def encodeImgs(generated_imgs):
 # Call backend to report finished job
 def getRequest():
     x = requests.get('https://feedback-backend.herokuapp.com/create/ready', headers = {})
-    return (x)
+    return (x.json())
 
 # Call backend to report finished job
 def postResponse(jobId, response):

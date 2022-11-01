@@ -146,6 +146,7 @@ def main():
                     r.set('jobs', jobs)
             else:
                 newJob = getRequest()
+                print("newJob: ", newJob)
                 if (newJob):
                     jobs = json.loads(r.get('jobs'))['jobs']
                     jobs.append(newJob)

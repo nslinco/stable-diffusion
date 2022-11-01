@@ -48,10 +48,12 @@ def sd_api():
 @app.route("/status", methods=["GET"])
 @cross_origin()
 def sd_status():
+    status = r.get('status')
     jobs = json.loads(r.get('jobs'))['jobs']
     return jsonify(
         message=f"Here are my current jobs",
         data={
+            "status": status,
             "jobs": jobs
         },
         status=200

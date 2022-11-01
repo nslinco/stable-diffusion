@@ -427,3 +427,181 @@ class SDModel:
         toc = time.time()
         print(f"Generated {len(outimgs)} images from bulk prompt: [{prompt}] in {toc-tic}s")
         return(outimgs)
+
+    def generate_images_quick(
+        self,
+        job
+    ):
+        # Parse job
+        jobId = job["parentId"]
+        optjobUID = job["jobUID"]
+        animate = job["animate"]
+        optddim_steps = job["ddim_steps"]
+        optprompt = job["prompt"]
+        optmodifier = job["modifier"]
+        optseed = job["seed"]
+        optddim_eta = job["eta"]
+        optscale = job["scale"]
+
+        prompt = optprompt + ', ' + optmodifier
+
+        optn_samples=1
+        optplms=False
+        optfixed_code=True
+        optn_iter=1
+        optH=512
+        optW=512
+        optC=4
+        optf=8
+        optprecision="autocast"
+        logRate = 1 if animate else 100
+
+        print(f"Generating image for bulk job: {jobId}-{optjobUID}")
+        
+        tic = time.time()
+
+        seed_everything(optseed)
+
+        batch_size = optn_samples
+        data = [batch_size * [prompt]]
+
+        if (not optplms):
+            self.sampler = DDIMSampler(self.model)
+
+        start_code = None
+        if optfixed_code:
+            start_code = torch.randn([optn_samples, optC, optH // optf, optW // optf], device=self.device)
+
+        outimgs = []
+
+        precision_scope = autocast if optprecision=="autocast" else nullcontext
+        with torch.no_grad():
+            with precision_scope("cuda"):
+                with self.model.ema_scope():
+                    for n in trange(optn_iter, desc="Sampling"):
+                        # Start the clock
+                        iTic = time.time()
+
+                        # Iterate why?
+                        for prompts in tqdm(data, desc="data"):
+                            uc = None
+                            if optscale != 1.0:
+                                uc = self.model.get_learned_conditioning(batch_size * [""])
+                            if isinstance(prompts, tuple):
+                                prompts = list(prompts)
+                            c = self.model.get_learned_conditioning(prompts)
+                            shape = [optC, optH // optf, optW // optf]
+                            samples_ddim, intermediates = self.sampler.sample(S=optddim_steps,
+                                                            conditioning=c,
+                                                            batch_size=batch_size,
+                                                            shape=shape,
+                                                            verbose=False,
+                                                            unconditional_guidance_scale=optscale,
+                                                            unconditional_conditioning=uc,
+                                                            eta=optddim_eta,
+                                                            x_T=start_code,
+                                                            log_every_t=logRate)
+
+                            # Initialize Animation fn
+                            gifName = None
+                            if (animate):
+                                # Break down output
+                                intermediates = intermediates['pred_x0']
+                                
+                                # Decode Intermediates
+                                # print(f'intermediates: {len(intermediates)}')
+                                for intermediate in intermediates:
+                                    x_intermediates_ddim = self.model.decode_first_stage(intermediate)
+                                    x_intermediates_ddim = torch.clamp((x_intermediates_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                                    x_intermediates_ddim = x_intermediates_ddim.cpu().permute(0, 2, 3, 1).numpy()
+                                    x_intermediates_torch = torch.from_numpy(x_intermediates_ddim).permute(0, 3, 1, 2)
+                                    for x_sample in x_intermediates_torch:
+                                        x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                                        img = Image.fromarray(x_sample.astype(np.uint8))
+                                        self.frames.append(img)
+                                self.frames.pop(0)
+                                # print(f'frames: {len(self.frames)}')
+
+                                # Add reverse frames for bounce effect
+                                reversedFrames = self.frames[::-1]
+                                reversedFrames.extend(self.frames)
+                                # print(f'extended frames: {len(reversedFrames)}')
+                                
+                                # Create animation
+                                buffered = BytesIO()
+                                gif = reversedFrames[0]
+                                gif.save(
+                                    fp=buffered,
+                                    format='GIF',
+                                    append_images=reversedFrames,
+                                    save_all=True,
+                                    duration=(int)(1000/len(reversedFrames)),
+                                    loop=0
+                                )
+                                # gif_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                                # gif_str = f'data:image/gif;base64,{gif_str}'
+                                self.frames = []
+
+                                # Name GIF
+                                gifName = f"{jobId}-{optjobUID}.gif"
+
+                                # Upload to s3 bucket
+                                buffered.seek(0)
+                                uploaded = client.upload_fileobj(
+                                    buffered,
+                                    'meadowrun-sd-69',
+                                    'animations/{}'.format(gifName),
+                                    ExtraArgs={'ACL':'public-read'}
+                                )
+                                print(f"Uploaded to S3 bucket: {uploaded}")
+
+                            # Decode Samples
+                            x_samples_ddim = self.model.decode_first_stage(samples_ddim)
+                            x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                            x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
+                            # x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
+                            # x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
+                            x_checked_image_torch = torch.from_numpy(x_samples_ddim).permute(0, 3, 1, 2)
+
+                            # Create result
+                            for x_sample in x_checked_image_torch:
+                                # Format Image
+                                x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                                img = Image.fromarray(x_sample.astype(np.uint8))
+                                buffered = BytesIO()
+                                img.save(fp=buffered, format='jpeg')
+
+                                # Name image
+                                imgName = f"{jobId}-{optjobUID}.jpeg"
+
+                                # Upload to s3 bucket
+                                buffered.seek(0)
+                                client.upload_fileobj(
+                                    buffered,
+                                    'meadowrun-sd-69',
+                                    'images/{}'.format(imgName),
+                                    ExtraArgs={'ACL':'public-read'}
+                                )
+
+                                # img = put_watermark(img, self.wm_encoder)
+                                iToc = time.time()
+                                iTime = iToc-iTic
+                                retObj = {
+                                    "jobId": jobId,
+                                    "jobUID": optjobUID,
+                                    "result": imgName,
+                                    "params": {
+                                        "prompt": optprompt,
+                                        "modifier": optmodifier,
+                                        "seed": optseed,
+                                        "eta": optddim_eta,
+                                        "scale": optscale,
+                                        "ddim_steps": optddim_steps
+                                    },
+                                    "time": iTime,
+                                    "animation": gifName
+                                }
+                                outimgs.append(retObj)
+        toc = time.time()
+        print(f"Generated {len(outimgs)} images for bulk job: {jobId}-{optjobUID} in {toc-tic}s")
+        return(outimgs)

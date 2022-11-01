@@ -78,12 +78,6 @@ def doSDBulk(job, model):
         animate,
         mask
     )
-
-    # Encode Images
-    # for idx, generated_img in enumerate(generated_imgs):
-    #     img = encodeImgs([generated_img['result']])[0]
-    #     generated_img['result'] = img
-    #     generated_imgs[idx] = generated_img
     
     # Return Images
     return postResponse(jobId, {
@@ -92,9 +86,28 @@ def doSDBulk(job, model):
         "bulk": True
     })
 
+def doSDQuick(job, model):
+    try:
+        # Generate Images
+        r.set('status', 'working')
+        generated_imgs = model.generate_images_quick(job)
+        r.set('status', 'waiting')
+
+        # Report Results
+        newJob = postResponse(job["parentId"], generated_imgs)
+        if (newJob):
+            # Save Next Job
+            jobs = json.loads(r.get('jobs'))['jobs']
+            jobs.append(newJob)
+            r.set('jobs', json.dumps({'jobs': jobs}))
+    except Exception as e:
+        print(f'doSDQuick Error: {e}')
+        r.set('status', 'failed')
+
 def main():
     #Initialize Model
     print("--> Starting Stable Diffusion Slave. This might take up to two minutes.")
+    r.set('status', 'initializing')
     sd_model = SDModel()
 
     # Run Warm-Up Tests
@@ -104,6 +117,7 @@ def main():
     # Initialize Redis jobs
     jobs = json.dumps({ 'jobs': [] })
     r.set('jobs', jobs)
+    r.set('status', 'waiting')
 
     # Enter Work Loop
     while(True):
@@ -111,12 +125,16 @@ def main():
             curJobs = json.loads(r.get('jobs'))['jobs']
             if(len(curJobs) > 0):
                 curJob = curJobs[0]
-                doneJob = None
-                if (curJob['data']['bulk']):
-                    print(f'Starting bulk job: {curJob["_id"]}')
-                    doneJob = doSDBulk(curJob, sd_model)
-                else:
-                    doneJob = doSD(curJob, sd_model)
+                doneJob = doSDQuick(curJob, sd_model)
+
+                # doneJob = None
+                # if (curJob['data']['bulk']):
+                #     print(f'Starting bulk job: {curJob["_id"]}')
+                #     doneJob = doSDBulk(curJob, sd_model)
+                # else:
+                #     print(f'Starting job: {curJob["_id"]}')
+                #     doneJob = doSD(curJob, sd_model)
+                
                 if(not doneJob):
                     print('Job Error:', curJob['_id'])
                 else:

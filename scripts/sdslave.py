@@ -1,7 +1,7 @@
 import time
 from flask import json
 
-from slavehelper import encodeImgs, postResponse
+from slavehelper import encodeImgs, postResponse, getRequest
 from sdmodel import SDModel
 
 # Initialize Redis
@@ -144,6 +144,12 @@ def main():
                     jobs.remove(curJob)
                     jobs = json.dumps({ 'jobs': jobs})
                     r.set('jobs', jobs)
+            else:
+                newJob = getRequest()
+                if (newJob):
+                    jobs = json.loads(r.get('jobs'))['jobs']
+                    jobs.append(newJob)
+                    r.set('jobs', json.dumps({'jobs': jobs}))
         except Exception as e:
             print(f'Error!: {e}')
         r.set('status', 'sleeping')

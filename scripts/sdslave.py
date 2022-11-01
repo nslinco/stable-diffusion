@@ -61,6 +61,7 @@ def doSD(job, model):
 def doSDBulk(job, model):
     # Parse request
     jobId = str(job['_id'])
+    instanceIp = job['instanceIp']
     jobData = job['data']['inputs']
 
     subJobs = jobData["subJobs"]
@@ -70,6 +71,7 @@ def doSDBulk(job, model):
 
     # Generate Images
     generated_imgs = model.generate_images_bulk(
+        instanceIp,
         jobId,
         subJobs,
         ddim_steps,

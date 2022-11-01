@@ -236,6 +236,7 @@ class SDModel:
 
     def generate_images_bulk(
         self,
+        instanceIp,
         jobId,
         subJobs,
         optddim_steps=50,
@@ -419,7 +420,8 @@ class SDModel:
                                     numerator += 1
                                     postUpdate(jobId, {
                                         "numerator": numerator,
-                                        "denominator": denominator
+                                        "denominator": denominator,
+                                        "instanceIp": instanceIp
                                     })
                                     print(f"Generated image {numerator}/{denominator} in {iTime}s")
         toc = time.time()

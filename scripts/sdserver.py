@@ -54,12 +54,14 @@ def sd_status():
 
     # Wake up!
     r.set('status', 'waiting')
+    statusa = r.get('status').decode("utf-8")
 
     # Report Current State
     return jsonify(
         message=f"Here are my current jobs",
         data={
             "status": status,
+            "statusa": statusa,
             "jobs": jobs
         },
         status=200

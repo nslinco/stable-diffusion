@@ -141,6 +141,7 @@ def main():
                 r.set('jobs', json.dumps({ 'jobs': jobs}))
             else:
                 status = r.get('status').decode("utf-8")
+                print('status: ', status)
                 if (status != 'sleeping'):
                     newJob = getRequest()
                     print("newJob: ", newJob)

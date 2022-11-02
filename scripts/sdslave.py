@@ -116,7 +116,7 @@ def main():
     r.set('status', 'waiting')
 
     # Enter Work Loop
-    sleepCounter = 0
+    r.set('sleepCounter', '0')
     while(True):
         try:
             curJobs = json.loads(r.get('jobs'))['jobs']
@@ -149,10 +149,13 @@ def main():
                         jobs.append(newJob)
                         r.set('jobs', json.dumps({'jobs': jobs}))
                     else:
+                        sleepCounter = int(r.get('sleepCounter').decode('utf-8'))
                         sleepCounter += 1
                         if (sleepCounter > 2):
-                            sleepCounter = 0
+                            r.set('sleepCounter', 0)
                             r.set('status', 'sleeping')
+                        else:
+                            r.set('sleepCounter', sleepCounter)
         except Exception as e:
             print(f'Error!: {e}')
         time.sleep(5)

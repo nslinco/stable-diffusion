@@ -14,15 +14,23 @@ def encodeImgs(generated_imgs):
         returned_generated_images.append(img_str)
     return (returned_generated_images)
 
+def getInstancePublicDNS():
+    x = requests.get('http://169.254.169.254/latest/meta-data/public-hostname', headers = {})
+    return (x)
+
 # Call backend to report finished job
-def getRequest():
-    x = requests.get('https://feedback-backend.herokuapp.com/create/ready', headers = {})
+def getRequest(publicDNS):
+    myobj = {}
+    myobj['publicDNS'] = publicDNS
+    x = requests.post('https://feedback-backend.herokuapp.com/create/ready', headers = {}, json = myobj)
     return (x.json())
 
 # Call backend to report finished job
-def postResponse(jobId, response):
+def postResponse(jobId, response, publicDNS):
     myobj = {}
     myobj[jobId] = response
+    myobj['jobId'] = jobId
+    myobj['publicDNS'] = publicDNS
     x = requests.post('https://feedback-backend.herokuapp.com/create/callback', headers = {}, json = myobj)
     return (x)
 

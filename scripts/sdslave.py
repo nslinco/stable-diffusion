@@ -1,7 +1,7 @@
 import time
 from flask import json
 
-from slavehelper import encodeImgs, postResponse, getRequest
+from slavehelper import encodeImgs, postResponse, getRequest, getInstancePublicDNS
 from sdmodel import SDModel
 
 # Initialize Redis
@@ -86,7 +86,7 @@ def doSDBulk(job, model):
         "bulk": True
     })
 
-def doSDQuick(job, model):
+def doSDQuick(job, model, instanceDNS):
     try:
         # Generate Images
         r.set('status', 'working')
@@ -94,13 +94,18 @@ def doSDQuick(job, model):
         r.set('status', 'waiting')
 
         # Report Results
-        newJob = postResponse(job["parentId"], generated_imgs).json()
+        newJob = postResponse(job["parentId"], generated_imgs, instanceDNS).json()
         return (newJob)
     except Exception as e:
         print(f'doSDQuick Error: {e}')
         r.set('status', 'failed')
 
 def main():
+    # Get instance public DNS
+    instanceDNS = getInstancePublicDNS()
+    print("instanceDNS:", instanceDNS)
+    # r.set('instanceDNS', instanceDNS)
+
     #Initialize Model
     print("--> Starting Stable Diffusion Slave. This might take up to two minutes.")
     r.set('status', 'initializing')
@@ -123,7 +128,7 @@ def main():
             if(len(curJobs) > 0):
                 curJob = curJobs[0]
                 print(f'Starting quick job: {curJob["_id"]}')
-                newJob = doSDQuick(curJob, sd_model)
+                newJob = doSDQuick(curJob, sd_model, instanceDNS)
 
                 # doneJob = None
                 # if (curJob['data']['bulk']):
@@ -143,7 +148,7 @@ def main():
                 status = r.get('status').decode("utf-8")
                 print('status: ', status)
                 if (status != 'sleeping'):
-                    newJob = getRequest()
+                    newJob = getRequest(instanceDNS)
                     print("newJob: ", newJob)
                     if (newJob):
                         jobs = json.loads(r.get('jobs'))['jobs']

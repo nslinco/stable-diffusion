@@ -16,7 +16,7 @@ def encodeImgs(generated_imgs):
 
 def getInstancePublicDNS():
     x = requests.get('http://169.254.169.254/latest/meta-data/public-hostname', headers = {})
-    return (x)
+    return (x.content.decode("utf-8"))
 
 # Call backend to report finished job
 def getRequest(publicDNS):
@@ -32,7 +32,7 @@ def postResponse(jobId, response, publicDNS):
     myobj['jobId'] = jobId
     myobj['publicDNS'] = publicDNS
     x = requests.post('https://feedback-backend.herokuapp.com/create/callback', headers = {}, json = myobj)
-    return (x)
+    return (x.json())
 
 # Call backend to report finished job
 def postUpdate(jobId, updateObj):

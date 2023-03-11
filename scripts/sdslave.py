@@ -94,7 +94,7 @@ def doSDQuick(job, model, instanceDNS):
         r.set('status', 'waiting')
 
         # Report Results
-        newJob = postResponse(job["parentId"], generated_imgs, instanceDNS).json()
+        newJob = postResponse(job["parentId"], generated_imgs, instanceDNS)
         return (newJob)
     except Exception as e:
         print(f'doSDQuick Error: {e}')
@@ -103,6 +103,8 @@ def doSDQuick(job, model, instanceDNS):
 def main():
     # Get instance public DNS
     instanceDNS = getInstancePublicDNS()
+    # instanceDNS saves public-hostname
+    instanceDNS = instanceDNS
     print("instanceDNS:", instanceDNS)
     # r.set('instanceDNS', instanceDNS)
 

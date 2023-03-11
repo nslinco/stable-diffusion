@@ -103,8 +103,6 @@ def doSDQuick(job, model, instanceDNS):
 def main():
     # Get instance public DNS
     instanceDNS = getInstancePublicDNS()
-    # instanceDNS saves public-hostname
-    instanceDNS = instanceDNS
     print("instanceDNS:", instanceDNS)
     # r.set('instanceDNS', instanceDNS)
 

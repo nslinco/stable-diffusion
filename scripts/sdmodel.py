@@ -15,6 +15,7 @@ from torch import autocast
 from contextlib import contextmanager, nullcontext
 
 # Speed it up, baby
+from torch.backends.cuda import sdp_kernel
 # torch.backends.cuda.enable_mem_efficient_sdp(True)
 # torch.backends.cuda.sdp_kernel(False, False, True)
 # torch.backends.cudnn.deterministic = True
@@ -493,11 +494,7 @@ class SDModel:
         outimgs = []
 
         precision_scope = autocast if optprecision=="autocast" else nullcontext
-        with torch.backends.cuda.sdp_kernel(
-            enable_flash=False, 
-            enable_math=False, 
-            enable_mem_efficient=True
-        ):
+        with sdp_kernel({"enable_math": False, "enable_flash": False, "enable_mem_efficient": True}):
             with torch.no_grad():
                 with precision_scope("cuda"):
                     with self.model.ema_scope():

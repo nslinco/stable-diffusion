@@ -139,7 +139,7 @@ class SDModel:
 
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.model = self.model.to(self.device)
-        self.model = torch.compile(self.model)
+        # self.model = torch.compile(self.model)
 
         if self.optplms:
             self.sampler = PLMSSampler(self.model)
@@ -495,7 +495,8 @@ class SDModel:
         outimgs = []
 
         precision_scope = autocast if optprecision=="autocast" else nullcontext
-        with sdp_kernel({"enable_math": False, "enable_flash": False, "enable_mem_efficient": True}):
+        # with sdp_kernel({"enable_math": False, "enable_flash": False, "enable_mem_efficient": True}):
+        with sdp_kernel({"enable_math": False, "enable_flash": True}):
             with torch.no_grad():
                 with precision_scope("cuda"):
                     with self.model.ema_scope():

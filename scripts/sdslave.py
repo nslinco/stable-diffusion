@@ -90,7 +90,7 @@ def doSDQuick(job, model, instanceDNS):
     try:
         # Generate Images
         r.set('status', 'working')
-        generated_imgs = model.generate_images_quick(job)
+        generated_imgs = model.generate_images_quicker(job)
         r.set('status', 'waiting')
 
         # Report Results
@@ -107,12 +107,12 @@ def main():
     # r.set('instanceDNS', instanceDNS)
 
     #Initialize Model
-    print("--> Starting Stable Diffusion Slave. This might take up to two minutes.")
+    print("--> Starting Stable Diffusion Slave")
     r.set('status', 'initializing')
     sd_model = SDModel()
 
     # Run Warm-Up Tests
-    sd_model.generate_images("warm-up")
+    # sd_model.generate_images("warm-up")
     print("--> Stable Diffusion Slave is up and running!")
 
     # Initialize Redis jobs

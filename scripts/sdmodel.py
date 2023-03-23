@@ -27,6 +27,8 @@ from ldm.models.diffusion.plms import PLMSSampler
 # from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
 from transformers import AutoFeatureExtractor
 
+from diffusers import StableDiffusionPipeline
+
 from slavehelper import postUpdate
 import base64
 from io import BytesIO
@@ -125,31 +127,35 @@ class SDModel:
         self.optseed=42
         self.optprecision="autocast"
         
-        self.frames = []
+        # self.frames = []
 
-        if self.optlaion400m:
-            print("Falling back to LAION 400M model...")
-            self.optconfig = "configs/latent-diffusion/txt2img-1p4B-eval.yaml"
-            self.optckpt = "models/ldm/text2img-large/model.ckpt"
+        # if self.optlaion400m:
+        #     print("Falling back to LAION 400M model...")
+        #     self.optconfig = "configs/latent-diffusion/txt2img-1p4B-eval.yaml"
+        #     self.optckpt = "models/ldm/text2img-large/model.ckpt"
 
-        seed_everything(self.optseed)
+        # seed_everything(self.optseed)
 
-        config = OmegaConf.load(f"{self.optconfig}")
-        self.model = load_model_from_config(config, f"{self.optckpt}")
+        # config = OmegaConf.load(f"{self.optconfig}")
+        # self.model = load_model_from_config(config, f"{self.optckpt}")
 
-        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        self.model = self.model.to(self.device)
+        # self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        # self.model = self.model.to(self.device)
         # self.model = torch.compile(self.model)
 
-        if self.optplms:
-            self.sampler = PLMSSampler(self.model)
-        else:
-            self.sampler = DDIMSampler(self.model)
+        self.model_id = "stabilityai/stable-diffusion-2-1-base"
+        self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16, safety_checker=None)
+        self.pipe = self.pipe.to("cuda")
 
-        print("Creating invisible watermark encoder (see https://github.com/ShieldMnt/invisible-watermark)...")
-        wm = "StableDiffusionV1"
-        self.wm_encoder = WatermarkEncoder()
-        self.wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
+        # if self.optplms:
+        #     self.sampler = PLMSSampler(self.model)
+        # else:
+        #     self.sampler = DDIMSampler(self.model)
+
+        # print("Creating invisible watermark encoder (see https://github.com/ShieldMnt/invisible-watermark)...")
+        # wm = "StableDiffusionV1"
+        # self.wm_encoder = WatermarkEncoder()
+        # self.wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
         print("Finished initializing the Stable Diffusion model")
 
     # def sampleCallback(self, img, i):
@@ -626,4 +632,89 @@ class SDModel:
                                     outimgs.append(retObj)
         toc = time.time()
         print(f"Generated {len(outimgs)} images for bulk job: {jobId}-{optjobUID} in {toc-tic}s")
+        return(outimgs)
+
+    def generate_images_quicker(
+        self,
+        job
+    ):
+        # Parse job
+        jobId = job["parentId"]
+        optjobUID = job["jobUID"]
+        animate = job["animate"]
+        optddim_steps = job["ddim_steps"]
+        optprompt = job["prompt"]
+        optmodifier = job["modifier"]
+        optseed = job["seed"]
+        optddim_eta = job["eta"]
+        optscale = job["scale"]
+
+        prompt = optprompt + ', ' + optmodifier
+
+        optn_samples=1
+        optplms=False
+        optfixed_code=True
+        optn_iter=1
+        optH=512
+        optW=512
+        optC=4
+        optf=8
+        optprecision="autocast"
+        logRate = 1 if animate else 100
+
+        print(f"Generating image for bulk job: {jobId}-{optjobUID}")
+        
+        tic = time.time()
+
+        image = self.pipe(
+            prompt=prompt,
+            height=optH,
+            width=optW,
+            num_inference_steps=optddim_steps,
+            guidance_scale=optscale,
+            eta=optddim_eta,
+            num_images_per_prompt=optn_samples,
+            output_type='np.array',
+            generator = torch.Generator(device="cuda").manual_seed(optseed)
+        ).images[0]
+
+        # Name image
+        gifName = f"{jobId}-{optjobUID}.gif"
+        imgName = f"{jobId}-{optjobUID}.jpeg"
+
+        # Upload to s3 bucket
+        img = Image.fromarray(image.astype(np.uint8)) # Faster to leave output_type as default?
+        buffered = BytesIO()
+        img.save(fp=buffered, format='jpeg')
+        buffered.seek(0)
+        client.upload_fileobj(
+            buffered,
+            'meadowrun-sd-69',
+            'images/{}'.format(imgName),
+            ExtraArgs={'ACL':'public-read'}
+        )
+
+        outimgs = []
+
+        toc = time.time()
+        iTime = toc-tic
+        retObj = {
+            "jobId": jobId,
+            "jobUID": optjobUID,
+            "modelId": self.model_id,
+            "result": imgName,
+            "params": {
+                "prompt": optprompt,
+                "modifier": optmodifier,
+                "seed": optseed,
+                "eta": optddim_eta,
+                "scale": optscale,
+                "ddim_steps": optddim_steps
+            },
+            "time": iTime,
+            "animation": gifName
+        }
+        outimgs.append(retObj)
+
+        print(f"Generated {len(outimgs)} images for bulk job: {jobId}-{optjobUID} in {iTime}s")
         return(outimgs)

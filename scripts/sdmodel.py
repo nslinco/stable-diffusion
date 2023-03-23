@@ -16,7 +16,7 @@ from contextlib import contextmanager, nullcontext
 
 # Speed it up, baby
 # torch.backends.cuda.enable_mem_efficient_sdp(True)
-torch.backends.cuda.sdp_kernel(enable_flash=True, enable_math=True, enable_mem_efficient=True)
+torch.backends.cuda.sdp_kernel()
 # torch.backends.cudnn.deterministic = True
 
 from ldm.util import instantiate_from_config

@@ -139,6 +139,7 @@ class SDModel:
 
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.model = self.model.to(self.device)
+        self.model = torch.compile(self.model)
 
         if self.optplms:
             self.sampler = PLMSSampler(self.model)

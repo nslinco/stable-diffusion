@@ -6,8 +6,7 @@ dependencies:
   - python>=3.8.5
   - pip>=20.3
   - cudatoolkit>=11.3
-  - pytorch>=1.13.1
-  - pytorch-nightly
+  - pytorch>=2.0.0
   - torchvision>=0.12.0
   - numpy>=1.19.2
   - pip:
@@ -16,6 +15,7 @@ dependencies:
     - gunicorn
     - redis
     - boto3
+    - pytorch-nightly
     - xformers
     - albumentations==0.4.3
     - diffusers

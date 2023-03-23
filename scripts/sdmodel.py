@@ -14,6 +14,10 @@ from pytorch_lightning import seed_everything
 from torch import autocast
 from contextlib import contextmanager, nullcontext
 
+# Speed it up, baby
+torch.backends.cuda.enable_mem_efficient_sdp()
+# torch.backends.cudnn.deterministic = True
+
 from ldm.util import instantiate_from_config
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.models.diffusion.plms import PLMSSampler

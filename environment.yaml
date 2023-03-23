@@ -7,7 +7,6 @@ dependencies:
   - pip=20.3
   - cudatoolkit=11.3
   - pytorch=1.13.1
-  - xformers
   - torchvision=0.12.0
   - numpy=1.19.2
   - pip:
@@ -16,6 +15,7 @@ dependencies:
     - gunicorn
     - redis
     - boto3
+    - xformers
     - albumentations==0.4.3
     - diffusers
     - opencv-python==4.1.2.30

@@ -14,6 +14,15 @@ def encodeImgs(generated_imgs):
         returned_generated_images.append(img_str)
     return (returned_generated_images)
 
+def checkResponse(res):
+    try:
+        if (res.ok):
+            return True
+        else:
+            return False
+    except Exception as e:
+        print("Response Error:", e)
+
 def getInstancePublicDNS():
     x = requests.get('http://169.254.169.254/latest/meta-data/public-hostname', headers = {})
     return (x.content.decode("utf-8"))

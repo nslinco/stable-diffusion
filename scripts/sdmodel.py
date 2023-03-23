@@ -663,36 +663,37 @@ class SDModel:
         logRate = 1 if animate else 100
 
         print(f"Generating image for bulk job: {jobId}-{optjobUID}")
-        
-        tic = time.time()
-
-        image = self.pipe(
-            prompt=prompt,
-            height=optH,
-            width=optW,
-            num_inference_steps=optddim_steps,
-            guidance_scale=optscale,
-            eta=optddim_eta,
-            num_images_per_prompt=optn_samples,
-            output_type='np.array',
-            generator = torch.Generator(device="cuda").manual_seed(optseed)
-        ).images[0]
 
         # Name image
         gifName = f"{jobId}-{optjobUID}.gif"
         imgName = f"{jobId}-{optjobUID}.jpeg"
+        
+        tic = time.time()
 
-        # Upload to s3 bucket
-        img = Image.fromarray(image.astype(np.uint8)) # Faster to leave output_type as default?
-        buffered = BytesIO()
-        img.save(fp=buffered, format='jpeg')
-        buffered.seek(0)
-        client.upload_fileobj(
-            buffered,
-            'meadowrun-sd-69',
-            'images/{}'.format(imgName),
-            ExtraArgs={'ACL':'public-read'}
-        )
+        with torch.autocast("cuda"):
+            image = self.pipe(
+                prompt=prompt,
+                height=optH,
+                width=optW,
+                num_inference_steps=optddim_steps,
+                guidance_scale=optscale,
+                eta=optddim_eta,
+                num_images_per_prompt=optn_samples,
+                output_type='np.array',
+                generator = torch.Generator(device="cuda").manual_seed(optseed)
+            ).images[0]
+
+            # Upload to s3 bucket
+            img = Image.fromarray(image.astype(np.uint8)) # Faster to leave output_type as default?
+            buffered = BytesIO()
+            img.save(fp=buffered, format='jpeg')
+            buffered.seek(0)
+            client.upload_fileobj(
+                buffered,
+                'meadowrun-sd-69',
+                'images/{}'.format(imgName),
+                ExtraArgs={'ACL':'public-read'}
+            )
 
         outimgs = []
 

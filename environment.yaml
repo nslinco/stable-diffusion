@@ -16,6 +16,7 @@ dependencies:
     - redis
     - boto3
     - xformers
+    - accelerate
     - albumentations==0.4.3
     - diffusers==0.12.1
     - opencv-python>=4.1.2.30

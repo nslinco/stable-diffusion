@@ -496,7 +496,7 @@ class SDModel:
 
         precision_scope = autocast if optprecision=="autocast" else nullcontext
         # with sdp_kernel({"enable_math": False, "enable_flash": False, "enable_mem_efficient": True}):
-        with sdp_kernel({"enable_math": False, "enable_flash": True}):
+        with sdp_kernel(False, True):
             with torch.no_grad():
                 with precision_scope("cuda"):
                     with self.model.ema_scope():

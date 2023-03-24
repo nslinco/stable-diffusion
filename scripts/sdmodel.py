@@ -679,14 +679,14 @@ class SDModel:
                 guidance_scale=optscale,
                 eta=optddim_eta,
                 num_images_per_prompt=optn_samples,
-                output_type='np.array',
+                output_type='pil',
                 generator = torch.Generator(device="cuda").manual_seed(optseed)
             ).images[0]
 
             # Upload to s3 bucket
-            img = Image.fromarray(image.astype(np.uint8)) # Faster to leave output_type as default?
+            # img = Image.fromarray(image.astype(np.uint8)) # Faster to leave output_type as default?
             buffered = BytesIO()
-            img.save(fp=buffered, format='jpeg')
+            image.save(fp=buffered, format='jpeg')
             buffered.seek(0)
             client.upload_fileobj(
                 buffered,

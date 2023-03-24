@@ -705,6 +705,9 @@ class SDModel:
 
         outimgs = []
 
+        toc = time.time()
+        iTime = toc-tic
+
         retObj = {
             "jobId": jobId,
             "jobUID": optjobUID,
@@ -723,7 +726,5 @@ class SDModel:
         }
         outimgs.append(retObj)
 
-        toc = time.time()
-        iTime = toc-tic
         print(f"Generated {len(outimgs)} images for bulk job: {jobId}-{optjobUID} in {iTime-uTime}-{uTime}s")
         return(outimgs)

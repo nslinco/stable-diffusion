@@ -146,6 +146,7 @@ class SDModel:
         self.model_id = "stabilityai/stable-diffusion-2-1-base"
         self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16, safety_checker=None)
         self.pipe = self.pipe.to("cuda")
+        self.pipe.enable_xformers_memory_efficient_attention()
 
         # if self.optplms:
         #     self.sampler = PLMSSampler(self.model)
@@ -670,6 +671,10 @@ class SDModel:
         
         tic = time.time()
 
+        uTic = 0
+        uToc = 0
+        uTime = 0
+
         with torch.autocast("cuda"):
             image = self.pipe(
                 prompt=prompt,
@@ -685,6 +690,7 @@ class SDModel:
 
             # Upload to s3 bucket
             # img = Image.fromarray(image.astype(np.uint8)) # Faster to leave output_type as default?
+            uTic = time.time()
             buffered = BytesIO()
             image.save(fp=buffered, format='jpeg')
             buffered.seek(0)
@@ -694,11 +700,11 @@ class SDModel:
                 'images/{}'.format(imgName),
                 ExtraArgs={'ACL':'public-read'}
             )
+            uToc = time.time()
+            uTime = uToc-uTic
 
         outimgs = []
 
-        toc = time.time()
-        iTime = toc-tic
         retObj = {
             "jobId": jobId,
             "jobUID": optjobUID,
@@ -717,5 +723,7 @@ class SDModel:
         }
         outimgs.append(retObj)
 
-        print(f"Generated {len(outimgs)} images for bulk job: {jobId}-{optjobUID} in {iTime}s")
+        toc = time.time()
+        iTime = toc-tic
+        print(f"Generated {len(outimgs)} images for bulk job: {jobId}-{optjobUID} in {iTime-uTime}-{uTime}s")
         return(outimgs)

@@ -27,7 +27,7 @@ from ldm.models.diffusion.plms import PLMSSampler
 # from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
 from transformers import AutoFeatureExtractor
 
-from diffusers import StableDiffusionPipeline
+from diffusers import DiffusionPipeline
 
 from slavehelper import postUpdate
 import base64
@@ -144,7 +144,7 @@ class SDModel:
         # self.model = torch.compile(self.model)
 
         self.model_id = "stabilityai/stable-diffusion-2-1-base"
-        self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16, safety_checker=None)
+        self.pipe = DiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16, revision="fp16", safety_checker=None)
         self.pipe = self.pipe.to("cuda")
         self.pipe.enable_xformers_memory_efficient_attention()
 

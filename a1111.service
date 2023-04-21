@@ -6,7 +6,7 @@ After=redis.service
 [Service]
 User=ubuntu
 Group=www-data
-WorkingDirectory=/home/ubuntu/stable-diffusion
+WorkingDirectory=/home/ubuntu/stable-diffusion-webui
 Environment="COMMANDLINE_ARGS=--xformers --skip-torch-cuda-test --no-half-vae --api --nowebui"
 ExecStart=/home/ubuntu/stable-diffusion-webui/webui.sh
 Restart=always

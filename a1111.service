@@ -1,0 +1,15 @@
+# /home/ubuntu/stable-diffusion/a1111.service => /etc/systemd/system/a1111.service
+[Unit]
+Description=A1111 Stable Diffusion daemon
+After=redis.service
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/stable-diffusion
+Environment="COMMANDLINE_ARGS=--xformers --skip-torch-cuda-test --no-half-vae --api --nowebui"
+ExecStart=/home/ubuntu/stable-diffusion-webui/webui.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

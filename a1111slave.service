@@ -1,0 +1,15 @@
+# /home/ubuntu/stable-diffusion/a1111slave.service => /etc/systemd/system/a1111slave.service
+[Unit]
+Description=A1111 Stable Diffusion Slave daemon
+After=a1111.service
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/stable-diffusion
+Environment="PYTHONPATH=/home/ubuntu/stable-diffusion/scripts"
+ExecStart=/home/ubuntu/anaconda3/envs/ldm/bin/python /home/ubuntu/stable-diffusion/scripts/a1111slave.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

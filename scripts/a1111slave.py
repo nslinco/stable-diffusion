@@ -49,10 +49,10 @@ def doSD(job, instanceDNS):
 
         response = requests.post(url=f'{url}/sdapi/v1/txt2img', json=payload)
 
-        r = response.json()
+        response = response.json()
 
         generated_imgs = []
-        for i in r['images']:
+        for i in response['images']:
             print(f"Generating image for bulk job: {jobId}-{optjobUID}")
 
             # Name image

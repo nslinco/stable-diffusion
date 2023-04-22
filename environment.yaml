@@ -19,7 +19,7 @@ dependencies:
     - accelerate
     - triton
     - albumentations==0.4.3
-    - diffusers>=0.12.1
+    - diffusers==0.12.1
     - opencv-python>=4.1.2.30
     - pudb==2019.2
     - invisible-watermark
@@ -31,7 +31,7 @@ dependencies:
     - streamlit>=0.73.1
     - einops==0.3.0
     - torch-fidelity==0.3.0
-    - transformers>=4.19.2
+    - transformers==4.19.2
     - torchmetrics==0.6.0
     - kornia==0.6
     - -e git+https://github.com/CompVis/taming-transformers.git@master#egg=taming-transformers

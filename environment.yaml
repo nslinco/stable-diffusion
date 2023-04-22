@@ -9,13 +9,13 @@ dependencies:
   - pytorch>=2.0.0
   - torchvision>=0.12.0
   - numpy>=1.19.2
-  - xformers
   - pip:
     - flask
     - flask-cors
     - gunicorn
     - redis
     - boto3
+    - xformers
     - accelerate
     - triton
     - albumentations==0.4.3

@@ -143,8 +143,8 @@ class SDModel:
         # self.model = self.model.to(self.device)
         # self.model = torch.compile(self.model)
 
-        self.model_id = "stabilityai/stable-diffusion-2-1-base"
-        self.pipe = DiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16, revision="fp16", safety_checker=None)
+        self.model_id = "runwayml/stable-diffusion-v1-5"
+        self.pipe = DiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16, safety_checker=None)
         self.pipe = self.pipe.to("cuda")
         self.pipe.enable_xformers_memory_efficient_attention()
 
